@@ -1,0 +1,8 @@
+cfg/sshkey
+cfg/sshkey.pub
+drlm2t-client/drlm2t-client
+tests/ldap/*
+tests/minimal/*
+tests/demo/*
+tests/example
+tests/deb9srv2
