@@ -180,7 +180,7 @@ func (h *Host) createQCOW2() {
 		}
 
 		// Crear la imatge base de disc a lloc
-		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -o backing_file="+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2 > /dev/null 2>&1")
+		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -b "+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2 > /dev/null 2>&1")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
@@ -210,7 +210,8 @@ func (h *Host) generateXML() string {
 
 	templates := h.GetHostKvm().Templates
 
-	qcowFile := templates + `/` + Infrastructure.Name + `/` + h.Name + ".qcow2"
+	qcowFile := templates + "/" + Infrastructure.Name + "/" + h.Name + ".qcow2"
+	backQcowFile := templates + "/templates/" + h.Template + "/" + h.Template + ".qcow2"
 
 	domcfg := &libvirtxml.Domain{
 		Type: "kvm",
@@ -283,7 +284,13 @@ func (h *Host) generateXML() string {
 				Dev: "hda",
 				Bus: "ide"},
 			Boot: &libvirtxml.DomainDeviceBoot{
-				Order: 1}}
+				Order: 1},
+			BackingStore: &libvirtxml.DomainDiskBackingStore{
+				Format: &libvirtxml.DomainDiskFormat{
+					Type: "qcow2"},
+				Source: &libvirtxml.DomainDiskSource{
+					File: &libvirtxml.DomainDiskSourceFile{
+						File: backQcowFile}}}}
 		domcfg.Devices.Disks = append(domcfg.Devices.Disks, xmlDisk)
 	} else {
 		xmlBackingStoreOld := &libvirtxml.DomainDiskBackingStore{
@@ -291,7 +298,13 @@ func (h *Host) generateXML() string {
 				Type: "qcow2"},
 			Source: &libvirtxml.DomainDiskSource{
 				File: &libvirtxml.DomainDiskSourceFile{
-					File: qcowFile}}}
+					File: qcowFile}},
+			BackingStore: &libvirtxml.DomainDiskBackingStore{
+				Format: &libvirtxml.DomainDiskFormat{
+					Type: "qcow2"},
+				Source: &libvirtxml.DomainDiskSource{
+					File: &libvirtxml.DomainDiskSourceFile{
+						File: backQcowFile}}}}
 
 		for i := 1; i < testsDone-1; i++ {
 			actSnap := templates + "/" + Infrastructure.Name + "/" + h.Name + "." + strconv.Itoa(h.Tests[i].Index) + "-" + h.Tests[i].Name

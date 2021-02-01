@@ -46,7 +46,8 @@ hosts:
   # Install Expect to automate responses of DRLM install client
   - name: installExpect
     testtype: 1
-    commandtorun: "apt-get -y install expect"
+    commandtorun: "yum -y install expect"
+    landmark: true
   # host: srv1 - test: 7
   # Add client 1 - Debian 9 client
   - name: addCli1
@@ -124,6 +125,7 @@ hosts:
   - name: update
     filetorun: update.test
     expect: "OK"
+    landmark: true
   # host: deb9 - test: 2
   - name: prepareRescue
     filetorun: prepRescueCLI.test
@@ -142,6 +144,7 @@ hosts:
   - name: update
     filetorun: update.test
     expect: "OK"
+    landmark: true
   # host: deb10 - test: 2
   - name: prepareRescue
     filetorun: prepRescueCLI.test
@@ -159,7 +162,8 @@ hosts:
   # host: cen7 - test: 1
   - name: update
     filetorun: update.test
-    expect: "OK" 
+    expect: "OK"
+    landmark: true 
   # host: cen7 - test: 2 
   - name: prepareRescue
     filetorun: prepRescueCLI.test
@@ -177,7 +181,8 @@ hosts:
   # host: cen8 - test: 1 
   - name: update
     filetorun: update.test
-    expect: "OK" 
+    expect: "OK"
+    landmark: true
   # host: cen8 - test: 2 
   - name: prepareRescue
     filetorun: prepRescueCLI.test
@@ -196,6 +201,7 @@ hosts:
   - name: update
     filetorun: update.test
     expect: "OK" 
+    landmark: true
   # host: ubu18 - test: 2
   - name: prepareRescue
     filetorun: prepRescueCLI.test
@@ -214,6 +220,7 @@ hosts:
   - name: update
     filetorun: update.test
     expect: "OK" 
+    landmark: true
   # host: ubu20 - test: 2
   - name: prepareRescue
     filetorun: prepRescueCLI.test
