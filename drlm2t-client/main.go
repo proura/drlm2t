@@ -229,22 +229,6 @@ func UploadFile(filepath string, url string) error {
 //eval $(./drlm2t-client $(ip r | grep default | awk '{ print $3 }'))
 //go build && scp -i ../cfg/sshkey rlm2t-client root@192.168.75.148:~
 
-// /etc/systemd/system/drlm2t-client.service   --> debian
-// [Unit]
-// Description=drlm2t-client
-// Wants=network-online.target
-// After=network.target network-online.target
-
-// [Service]
-// WorkingDirectory=/root
-// ExecStart=/bin/sh -c "/root/drlm2t-client $(ip r | grep default | awk '{ print $3 }')"
-
-// [Install]
-// WantedBy=default.target
-
-// root@deb9:~# systemctl daemon-reload
-// root@deb9:~# systemctl enable drlm2t-client
-
 //=====New Version==========================
 //==========================================
 // [Unit]
@@ -254,6 +238,8 @@ func UploadFile(filepath string, url string) error {
 
 // [Service]
 // Type=idle
+// Restart=on-failure
+// RestartSec=5s
 // WorkingDirectory=/root
 // ExecStartPre=/usr/bin/sleep 5
 // ExecStart=/root/drlm2t-client 192.168.75.1

@@ -179,13 +179,8 @@ func (h *Host) createQCOW2() {
 			createDir(templates + "/" + Infrastructure.Name)
 		}
 
-		// Copiar la imatge de disc a lloc
-		//execCopy(templates+"/templates/"+h.Template+"/"+h.Template+".qcow2", templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
-
-		// Nova versió crear un snap de la base del server.
-		//h.GetHostKvm().createSnap(h.Name, h.Name+".init.qcow2")
-		//cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -b "+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
-		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -o backing_file="+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
+		// Crear la imatge base de disc a lloc
+		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -o backing_file="+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2 > /dev/null 2>&1")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()

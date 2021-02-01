@@ -6,3 +6,5 @@ tests/minimal
 tests/demo
 tests/example
 tests/deb9srv2
+*.test
+running.yaml
