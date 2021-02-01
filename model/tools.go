@@ -223,11 +223,7 @@ func ExtractTarGz(dst, fileDst string) {
 			outFile.Close()
 
 		default:
-			log.Fatalf(
-				"ExtractTarGz: uknown type: %s in %s",
-				header.Typeflag,
-				header.Name)
+			log.Fatalf("ExtractTarGz: uknown type: %d in %s", header.Typeflag, header.Name)
 		}
-
 	}
 }

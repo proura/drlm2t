@@ -5,6 +5,7 @@ import (
 	"log"
 	parser "net"
 	"os"
+	"os/exec"
 	"strconv"
 
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
@@ -127,13 +128,13 @@ func (h *Host) initHost(index int) {
 
 func (h *Host) createHost() {
 
-	h.createQCOW2()
-
 	if h.GetHostKvm().existHost(h.Name) {
 		log.Println("-", h.Name, "host already running")
 	} else {
 		log.Println("+ Starting", h.Name, "host at", h.GetHostKvm().HostName)
-		h.GetHostKvm().createHostXML(h.generateXML())
+		xml := h.generateXML()
+		h.createQCOW2()
+		h.GetHostKvm().createHostXML(xml)
 	}
 }
 
@@ -157,15 +158,15 @@ func (h *Host) createQCOW2() {
 
 		// Check if template exists
 		if !fileExists(templates + "/templates/" + h.Template + "/" + h.Template + ".qcow2") {
-			fileUrl := Infrastructure.URL + "/" + h.Template + ".tar.gz"
+			fileURL := Infrastructure.URL + "/" + h.Template + ".tar.gz"
 			fileDst := templates + "/templates/" + h.Template + ".tar.gz"
 
 			// Check if exists tar.gz downloaded file, if not download
 			if !fileExists(templates + "/templates/" + h.Template + ".tar.gz") {
 				log.Println("+ " + h.Template + " not found, will be downloaded from the server")
-				err := downloadFile(fileDst, fileUrl)
+				err := downloadFile(fileDst, fileURL)
 				if err != nil {
-					log.Fatal("- Template " + h.Template + " not found to download in \"" + fileUrl + "/templates/\".")
+					log.Fatal("- Template " + h.Template + " not found to download in \"" + fileURL + "/templates/\".")
 				}
 			}
 			// Extract tar.gz file
@@ -179,7 +180,20 @@ func (h *Host) createQCOW2() {
 		}
 
 		// Copiar la imatge de disc a lloc
-		execCopy(templates+"/templates/"+h.Template+"/"+h.Template+".qcow2", templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
+		//execCopy(templates+"/templates/"+h.Template+"/"+h.Template+".qcow2", templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
+
+		// Nova versió crear un snap de la base del server.
+		//h.GetHostKvm().createSnap(h.Name, h.Name+".init.qcow2")
+		//cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -b "+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
+		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -o backing_file="+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			log.Println("cmd.Run() failed with %s\n", err)
+		}
+		//time.Sleep(2 * time.Second)
+
 		// Copiar el testing de config a lloc
 		execCopy(templates+"/templates/"+h.Template+"/tests/config.test", "tests/"+Infrastructure.Name+"/tests/"+h.Name+"/0-config.test")
 

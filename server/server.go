@@ -199,7 +199,6 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 											if model.Infrastructure.Prefix+"-"+model.Infrastructure.Name+"-"+dh.Host == h.Name && oldStatus > 0 {
 												model.RunningInfrastructure.Hosts[irh].Tests[ith].PublishTest(model.RunningInfrastructure.Hosts[irh])
 											}
-
 										}
 									}
 									oldStatus = th.Status

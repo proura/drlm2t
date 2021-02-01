@@ -8,6 +8,7 @@ import (
 	libvirt "libvirt.org/libvirt-go"
 )
 
+//Kvm struct to store KVM server settings
 type Kvm struct {
 	HostName  string `mapstructure:"hostname"`
 	User      string `mapstructure:"user"`
@@ -261,6 +262,7 @@ func (k Kvm) getHostIP(host string) string {
 	return inter[0].Addrs[0].Addr
 }
 
+// GetHostByIP returnt de the host name giving and IP
 func (k Kvm) GetHostByIP(IP string) string {
 	k.connect()
 	defer k.close()
