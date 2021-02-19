@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Test to configure hostname, /etc/hosts and network interfaces
+# Expected output: "OK"
+#
+# file drlm2t.cfg in home will contain the HOSTNAME and NETWORKS
+#
+# HOSTNAME drlm2t-testname-hostname1
+# NETWORK drlm2t-testname-mgmt ens3 192.168.75.2 255.255.255.0 24 192.168.75.1 00:16:3e:27:48:75 8.8.8.8
+# NETWORK drlm2t-testname-default ens4 192.168.76.2 255.255.255.0 24 192.168.76.1 00:16:3e:f6:1d:ae 8.8.8.8
+
+
+DRLM2T_HOSTNAME="$(grep HOSTNAME drlm2t.cfg | awk '{print $2}')"
+
+hostnamectl set-hostname $DRLM2T_HOSTNAME
+
+sed -i "s/$/ $DRLM2T_HOSTNAME/" /etc/hosts
+
+while read -r line ; do
+    NAME=$(echo $line | awk '{print $2}')
+    IFACE=$(echo $line | awk '{print $3}')
+    IP=$(echo $line | awk '{print $4}')
+    MASK=$(echo $line | awk '{print $5}')
+    MASKC=$(echo $line | awk '{print $6}')
+    GATEWAY=$(echo $line | awk '{print $7}')
+    MAC=$(echo $line | awk '{print $8}')
+    DNS=$(echo $line | awk '{print $9}')
+    UUID="$(uuidgent $IFACE)"
+
+    rm -rf /etc/sysconfig/network-scripts/ifcfg-$IFACE
+
+    echo "TYPE=Ethernet" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "IPADDR=$IP" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "PREFIX=$MASKC" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "GATEWAY=$GATEWAY" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "DNS1=$DNS" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "DEFROUTE=yes" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "IPV4_FAILURE_FATAL=no" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "IPV6INIT=no" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "NAME=$IFACE" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "UUID=$UUID" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "DEVICE=$IFACE" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+    echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-$IFACE
+
+done < <(grep NETWORK drlm2t.cfg)
+
+systemctl restart network.service
+
+hostnamectl set-hostname $DRLM2T_HOSTNAME
+
+echo "OK"
+
+reboot
+

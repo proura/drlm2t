@@ -1,0 +1,57 @@
+#!/usr/bin/bash
+
+# Test to install DRLM from custom repositori and branch
+# var0: repo URL name (ex.: https://github.com/proura/drlm)
+# var1: branch (ex.: hotfix/2.3.2)
+# var2: package to install (ex.: drlm-2.3.2-1git.el7.noarch.rpm)
+#
+# Expected output: 
+
+yum -y install openssh-clients openssl wget gzip tar gawk sed grep coreutils util-linux rpcbind dhcp-server tftp-server xinetd nfs-utils nfs4-acl-tools qemu-img sqlite redhat-lsb-core bash-completion 
+yum -y install epel-release 
+yum -y install git rpm-build golang
+
+result=128
+counter=0
+
+while [ $result -gt 0 ] && [ $counter -lt 5 ]; do
+        timeout 10s /bin/bash -c "git clone {{var0}}"
+        result=$?
+        counter=$(( $counter + 1 ))
+done
+
+cd drlm
+git checkout {{var1}}
+
+export GOCACHE="/root/.cache/go-build"
+export GOENV="/root/.config/go/env"
+export GOMODCACHE="/root/go/pkg/mod"
+export GOPATH="/root/go"
+
+make rpm
+
+rpm -ivh {{var2}}
+sed -i 's/ quiet"/ quiet max_loop=1024"/g' /etc/default/grub
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+mv /etc/xinetd.d/tftp /root/tftp.bkp
+cat >/etc/xinetd.d/tftp <<EOL
+service tftp
+{
+        socket_type = dgram
+        protocol = udp
+        wait = yes
+        user = root
+        server = /usr/sbin/in.tftpd
+        server_args = -s /var/lib/drlm/store
+        disable = no
+        per_source = 11
+        cps = 100 2
+        flags = IPv4
+}
+EOL
+
+systemctl restart xinetd.service
+systemctl enable xinetd.service
+systemctl restart rpcbind.service
+systemctl enable rpcbind.service

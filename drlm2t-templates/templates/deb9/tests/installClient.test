@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Test to add a DRLM client
+# var0: client name (ex.: deb9cli10)
+# var1: client ip (ex.: 192.168.1.10/24)
+#
+# Expected output:
+#
+
+cat <<EOF >installCli.exp
+#!/usr/bin/expect 
+
+set env(TERM) xterm-256color
+set env(SHELL) /bin/bash
+set env(HOME) /root
+
+set timeout -1
+spawn /usr/sbin/drlm addclient -c {{var0}} -i {{var1}} -I
+match_max 100000
+expect "*Confirm?*"
+send "y\r"
+expect "Are you sure you want to continue connecting (yes/no)?*"
+send "yes\r"
+expect "password:*"
+send "qwerty\r"
+expect eof
+EOF
+
+chmod +x installCli.exp
+
+./installCli.exp
+
+rm installCli.exp
+
+cat <<EOF >>/etc/drlm/clients/{{var0}}.cfg
+COPY_AS_IS+=( '/root/drlm2t-client' )
+EOF

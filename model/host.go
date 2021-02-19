@@ -180,14 +180,17 @@ func (h *Host) createQCOW2() {
 		}
 
 		// Crear la imatge base de disc a lloc
-		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -b "+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2"+" "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2 > /dev/null 2>&1")
+		cmd := exec.Command("/bin/bash", "-c", "qemu-img create -f qcow2 -b "+templates+"/templates/"+h.Template+"/"+h.Template+".qcow2 "+templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2 > /dev/null 2>&1")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
 			log.Println("cmd.Run() failed with %s\n", err)
 		}
-		//time.Sleep(2 * time.Second)
+
+		if err := os.Chmod(templates+"/"+Infrastructure.Name+"/"+h.Name+".qcow2", 0666); err != nil {
+			log.Fatal(err)
+		}
 
 		// Copiar el testing de config a lloc
 		execCopy(templates+"/templates/"+h.Template+"/tests/config.test", "tests/"+Infrastructure.Name+"/tests/"+h.Name+"/0-config.test")

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Test prepare ReaR client to boot in rescue mode as drlm2t client
+# 
+
+cat <<EOF >/usr/share/rear/skel/default/etc/scripts/system-setup.d/999-drlm2t-client.sh
+/root/drlm2t-client $(ip r | grep default | awk '{ print $3 }')
+EOF

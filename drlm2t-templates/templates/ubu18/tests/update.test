@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Test to update debian9 OS with apt.
+# Expected output: "OK"
+
+apt-get -y update > /dev/null && apt-get -y upgrade > /dev/null; if [ $? == 0 ]; then echo "OK"; fi;

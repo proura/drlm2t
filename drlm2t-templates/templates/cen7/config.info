@@ -1,0 +1,38 @@
+CENTOS7 - TEMPLATE
+==================
+Date: 2020/06/26 - 12:36
+
+Disc: 8GB
+
+User: root 
+Pass: qwerty
+
+User: drlm2t
+Pass: qwerty
+
+* ens3 as defalt interface withc dhcp
+
+* yum install openssh-server
+  - permit root login yes
+  - copy cfg/sshkey
+
+* copy drlm2t-client in /root
+
+* create service drlm2t-client.service
+  -	[Unit]
+	Description=drlm2t-client
+	Wants=network-online.target
+	After=network.target network-online.target
+
+	[Service]
+	WorkingDirectory=/root
+	ExecStart=/bin/sh -c "/root/drlm2t-client $(ip r | grep default | awk '{ print $3 }' | head -n1)"
+
+	[Install]
+	WantedBy=default.target
+
+  - systemctl daemon-reload 
+  - systemctl enable drlm2t-client
+
+* create config.test
+

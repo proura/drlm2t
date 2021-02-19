@@ -1,10 +1,29 @@
+# Shared keys
 cfg/sshkey
 cfg/sshkey.pub
+
+# Build of drlm2t
+drlm2t
+# Build of drlm2t-client
 drlm2t-client/drlm2t-client
+
+# Some local tests
 tests/ldap
 tests/minimal
 tests/demo
-tests/example
-tests/deb9srv2
-*.test
+
+# running test yaml files
 running.yaml
+
+# Big tar.gz and qcow2 files
+drlm2t-templates/*
+drlm2t-templates/templates/*.tar.gz
+!drlm2t-templates/templates
+*.qcow2
+
+# Non interesting tests
+*Ldap*.test
+*ldap*.test
+
+# Generate images and upload to r2b2
+generate.sh

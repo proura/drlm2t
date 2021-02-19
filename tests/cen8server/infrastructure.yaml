@@ -36,7 +36,7 @@ hosts:
   - name: installDRLM240
     testtype: 1
     filetorun: installCustomDRLM240.test
-    args: [ 'https://github.com/proura/drlm', 'feature/incremental_backups', 'drlm-2.4.0-1git.el8.noarch.rpm' ]
+    args: [ 'https://github.com/brainupdaters/drlm', 'develop', 'drlm-2.4.0-1git.el8.noarch.rpm' ]
   # host: srv1 - test: 5
   # Add backup networt to drlm networks in order to do PXE recovers
   - name: addNetwork
@@ -107,7 +107,6 @@ hosts:
   - name: listClients
     testtype: 1
     commandtorun: "drlm listclient"
-
 
 #  ############################
 #  #

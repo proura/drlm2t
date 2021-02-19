@@ -5,6 +5,7 @@ import (
 	"log"
 	parser "net"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -68,12 +69,13 @@ func InitInfrastructure(cfgName string) {
 	}
 	// Set Default Global path to qcow2 files (with libvirt permissions)
 	if Infrastructure.Templates == "" {
-		Infrastructure.Templates = "/drlm2t-templates"
+		Infrastructure.Templates, _ = filepath.Abs("./drlm2t-templates")
 	}
 
 	// Set Default Global path to qcow2 files (with libvirt permissions)
 	if Infrastructure.URL == "" {
-		Infrastructure.URL = "http://etnalan.es/"
+		//Infrastructure.URL = "http://etnalan.es/"
+		Infrastructure.URL = "http://nothing.to.lalala.es"
 	}
 
 	// Set Default Global starting IP

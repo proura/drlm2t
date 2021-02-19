@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Test to get de management ip
+# Expected output: management IP (192.168.75.X)
+
+ip a | grep ens3 | sed -n '2,2p' | awk '{print $2}' | cut -d "/" -f 1

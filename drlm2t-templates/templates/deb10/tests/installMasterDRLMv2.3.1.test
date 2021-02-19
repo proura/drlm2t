@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Test to install DRLM from GitHub master branch 
+# Expected output: 
+
+apt-get update 
+apt-get upgrade -y
+apt-get install -y openssh-client openssl gawk nfs-kernel-server rpcbind isc-dhcp-server tftpd-hpa qemu-utils sqlite3 lsb-release bash-completion git build-essential debhelper golang wget
+git clone https://github.com/brainupdaters/drlm 
+cd drlm
+git checkout 2.3.1
+make deb
+cd ..
+dpkg -i drlm_2.3.1_all.deb
+sed -i '/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet max_loop=1024"' /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
+sed -i '/TFTP_DIRECTORY="\/srv\/tftp"/c\TFTP_DIRECTORY="\/var\/lib\/drlm\/store"' /etc/default/tftpd-hpa
+DHCP_NET="$(ip -o link show | awk -F': ' '{print $2}' | awk '!/lo/')"
+#basename -a /sys/class/net/* | awk '!/lo/'
+sed -i "/INTERFACESv4=\"\"/c\INTERFACESv4=\"$(echo $DHCP_NET)\"" /etc/default/isc-dhcp-server
+systemctl restart tftpd-hpa.service
+systemctl restart rpcbind.service

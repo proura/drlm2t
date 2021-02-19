@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Test to configure hostname, /etc/hosts and network interfaces
+# Expected output: "OK"
+#
+# file drlm2t.cfg in home will contain the HOSTNAME and NETWORKS
+#
+# HOSTNAME drlm2t-testname-hostname1
+# NETWORK drlm2t-testname-mgmt ens3 192.168.75.2 255.255.255.0 24 192.168.75.1 00:16:3e:27:48:75 8.8.8.8
+# NETWORK drlm2t-testname-default ens4 192.168.76.2 255.255.255.0 24 192.168.76.1 00:16:3e:f6:1d:ae 8.8.8.8
+
+
+DRLM2T_HOSTNAME="$(grep HOSTNAME drlm2t.cfg | awk '{print $2}')"
+
+hostnamectl set-hostname $DRLM2T_HOSTNAME
+
+#if [ "$(hostname)" == "deb9" ]; then
+#  sleep 1
+#  rm -f /root/drlm2t.cfg
+#  systemctl restart drlm2t-client.service
+#fi
+
+sed -i '/127.0.1.1/d' /etc/hosts
+echo "127.0.1.1	$DRLM2T_HOSTNAME" >> /etc/hosts
+
+
+while read -r line ; do
+    NAME=$(echo $line | awk '{print $2}')
+    IFACE=$(echo $line | awk '{print $3}')
+    IP=$(echo $line | awk '{print $4}')
+    MASK=$(echo $line | awk '{print $5}')
+    MASKC=$(echo $line | awk '{print $6}')
+    GATEWAY=$(echo $line | awk '{print $7}')
+    MAC=$(echo $line | awk '{print $8}')
+    DNS=$(echo $line | awk '{print $9}')
+
+    sed -i "/$IFACE/d" /etc/network/interfaces
+    rm -rf /etc/network/interfaces.d/$IFACE.cfg
+
+    echo "auto $IFACE" >> /etc/network/interfaces.d/$IFACE.cfg
+    echo "allow-hotplug $IFACE" >> /etc/network/interfaces.d/$IFACE.cfg
+    echo "iface $IFACE inet static" >> /etc/network/interfaces.d/$IFACE.cfg
+    echo "	address $IP" >> /etc/network/interfaces.d/$IFACE.cfg
+    echo "	netmask $MASK" >> /etc/network/interfaces.d/$IFACE.cfg
+    if [ $IFACE == "ens3" ]; then  echo "	gateway $GATEWAY" >> /etc/network/interfaces.d/$IFACE.cfg; fi
+    echo "	dns-nameservers $DNS" >> /etc/network/interfaces.d/$IFACE.cfg
+
+done < <(grep NETWORK drlm2t.cfg)
+
+systemctl restart networking.service
+
+echo "OK"
+
+reboot

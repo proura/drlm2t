@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Test to update centos7 OS with yum.
+# Expected output: "OK"
+
+yum -y update > /dev/null; if [ $? == 0 ]; then echo "OK"; fi;
