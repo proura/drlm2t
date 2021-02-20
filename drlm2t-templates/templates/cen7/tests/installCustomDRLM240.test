@@ -7,7 +7,7 @@
 #
 # Expected output: 
 
-yum -y install openssh-clients openssl wget gzip tar gawk sed grep coreutils util-linux rpcbind dhcp-server tftp-server xinetd nfs-utils nfs4-acl-tools qemu-img sqlite redhat-lsb-core bash-completion 
+yum -y install openssh-clients openssl wget gzip tar gawk sed grep coreutils util-linux rpcbind dhcp tftp-server xinetd nfs-utils nfs4-acl-tools qemu-img sqlite redhat-lsb-core bash-completion 
 yum -y install epel-release 
 yum -y install git rpm-build golang
 

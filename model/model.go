@@ -74,8 +74,7 @@ func InitInfrastructure(cfgName string) {
 
 	// Set Default Global path to qcow2 files (with libvirt permissions)
 	if Infrastructure.URL == "" {
-		//Infrastructure.URL = "http://etnalan.es/"
-		Infrastructure.URL = "http://nothing.to.lalala.es"
+		Infrastructure.URL = "http://www.etnalan.es/"
 	}
 
 	// Set Default Global starting IP

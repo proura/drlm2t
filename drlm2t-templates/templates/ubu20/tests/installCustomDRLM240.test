@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# Test to install DRLM from GitHub develeop branch 
+# Test to install DRLM from custom repositori and branch
+# var0: repo URL name (ex.: https://github.com/proura/drlm)
+# var1: branch (ex.: hotfix/2.4.1)
+# var2: package to install (ex.: drlm_2.4.0_all.deb)
+#
 # Expected output: 
 
 apt-get update 
 apt-get upgrade -y
 apt-get install -y openssh-client openssl gawk nfs-kernel-server rpcbind isc-dhcp-server tftpd-hpa qemu-utils sqlite3 lsb-release bash-completion git build-essential debhelper golang
-git clone https://github.com/brainupdaters/drlm
+git clone {{var0}}
 cd drlm
-git checkout develop
+git checkout {{var1}}
 
 export GOCACHE="/root/.cache/go-build"
 export GOENV="/root/.config/go/env"
@@ -17,7 +21,7 @@ export GOPATH="/root/go"
 
 make deb
 cd ..
-dpkg -i drlm_2.4.0_all.deb
+dpkg -i {{var2}}
 
 echo "nbd" > /etc/modules-load.d/nbd.conf
 echo "options nbd max_part=8 nbds_max=1024" > /etc/modprobe.d/nbd.conf

@@ -4,64 +4,157 @@ nets:
   ip: 192.168.181.1
 
 hosts:
+#################
 ## DRLM SERVER ##
+#################
 - name: srv1
   template: deb10
   nets:
   - name: net1
     ip: 192.168.181.2
   tests:
+
   # host: srv1 - test: 1
   # Update DRLM server making apt update & apt upgrade
   - name: update
     testtype: 1
     filetorun: update.test
+    expect: "OK"
+
   # host: srv1 - test: 2
   # install DRLM feature/incremental_backups of proura GitHub repository
   - name: installDRLM240
     testtype: 1
     filetorun: installCustomDRLM240.test
     args: [ 'https://github.com/proura/drlm', 'develop', 'drlm_2.4.0_all.deb' ]
+
   # host: srv1 - test: 3
   # Add backup networt to drlm networks in order to do PXE recovers
   - name: addNetwork
     testtype: 1
     commandtorun: "drlm -vD addnetwork -n BuLan -s 192.168.181.2  -m 255.255.255.0 -g 192.168.181.1"
+
   # host: srv1 - test: 4
   # Install Expect to automate responses of DRLM install client
   - name: installExpect
     testtype: 1
     commandtorun: "apt-get -y install expect"
+
   # host: srv1 - test: 5
   # Add client 1 - Debian 10 client
   - name: addCli1
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'deb10cli', '192.168.181.53/24']
     dependencies:
     - host: cli1
       test: 1
+
   # host: srv1 - test: 6
   # get output of drlm listclient
   - name: listClients
     testtype: 1
     commandtorun: "drlm listclient"
 
+  # host: srv1 - test: 7
+  # Make a default backup (Rescue PXE and all Data) of client1 
+  - name: runDefaultBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c deb10cli"  
+    dependencies: # Client with Automatic rescue prepared
+    - host: cli1
+      test: 2
+
+  # host: srv1 - test: 8
+  # get output of drlm listbackup
+  - name: listBackups
+    testtype: 1
+    commandtorun: "drlm listbackup" 
+
+  # host: srv1 - test: 9
+  # create client home data only incremental backup
+  - name: createCli1Config
+    testtype: 1
+    commandtorun: "echo -e \"DRLM_INCREMENTAL=yes\nDRLM_INCREMENTAL_HIST=6\nDRLM_INCREMENTAL_BEHAVIOR=1\nBACKUP_PROG=rsync\nBACKUP_ONLY_INCLUDE=yes\nBACKUP_PROG_INCLUDE=( '/home/*' )\" > /etc/drlm/clients/deb10cli.cfg.d/homeBackup.cfg"
+  
+  # host: srv1 - test: 10
+  # 1 Make a incremental data backup of client1
+  - name: 1runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c deb10cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 3
+
+  # host: srv1 - test: 11
+  # 2 Make a incrementl data backup of client1
+  - name: 2runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c deb10cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 4
+
+  # host: srv1 - test: 12 
+  # 3 Make a incremental data backup of client1
+  - name: 3runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c deb10cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 5
+
+  # host: srv1 - test: 13   
+  # get output of drlm listbackup
+  - name: listBackups
+    testtype: 1
+    commandtorun: "drlm listbackup" 
+
+#################
 ## DRLM CLIENT ##
+#################
 - name: cli1
   template: deb10
   nets:
   - name: net1
     ip: 192.168.181.53
   tests:
+
   # host: deb10 - test: 1
+  # Update client making apt update & apt upgrade
   - name: update
     filetorun: update.test
     expect: "OK"
+
   # host: deb10 - test: 2
+  # Update client making apt update & apt upgrade
   - name: prepareRescue
     filetorun: prepRescueCLI.test
     testtpe: 1
-    dependencies:
+    dependencies: # Client created in drlm server
     - host: srv1
       test: 5 
+
+  # host: deb10 - test: 3
+  - name: touchHomeFile1
+    commandtorun: "echo $(date) - first bakcup > /home/drlm/file1.txt"
+    testtpe: 1
+    dependencies: # Client created in drlm server
+    - host: srv1
+      test: 9
+
+  # host: deb10 - test: 4
+  - name: touchHomeFile2
+    commandtorun: "echo $(date) - second bakcup >> /home/drlm/file1.txt; echo $(date) - second bakcup > /home/drlm/file2.txt"
+    testtpe: 1
+    dependencies: # Client created in drlm server
+    - host: srv1
+      test: 10 
+
+  # host: deb10 - test: 5
+  - name: touchHomeFile3
+    commandtorun: "echo $(date) - third bakcup >> /home/drlm/file1.txt; echo $(date) - second third >> /home/drlm/file2.txt; echo $(date) - second third >> /home/drlm/file3.txt"
+    testtpe: 1
+    dependencies: # Client created in drlm server
+    - host: srv1
+      test: 11 

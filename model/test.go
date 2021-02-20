@@ -146,7 +146,7 @@ func InitTesting(mode int) {
 			}
 		}
 	} else if mode == 2 {
-		// Look for firt landmark and start from there.
+		// Look for first landmark and start from there.
 		if RunningInfrastructure != nil {
 			for index, h := range Infrastructure.Hosts {
 				landmarkFound := false

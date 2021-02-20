@@ -16,16 +16,21 @@ git checkout {{var1}}
 
 export GOCACHE="/root/.cache/go-build"
 export GOENV="/root/.config/go/env"
+export GOMODCACHE="/root/go/pkg/mod"
 export GOPATH="/root/go"
 
 make deb
 cd ..
 dpkg -i {{var2}}
+
 sed -i '/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet max_loop=1024"' /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
+
+
 sed -i '/TFTP_DIRECTORY="\/srv\/tftp"/c\TFTP_DIRECTORY="\/var\/lib\/drlm\/store"' /etc/default/tftpd-hpa
+
 DHCP_NET="$(ip -o link show | awk -F': ' '{print $2}' | awk '!/lo/')"
-#basename -a /sys/class/net/* | awk '!/lo/'
 sed -i "/INTERFACESv4=\"\"/c\INTERFACESv4=\"$(echo $DHCP_NET)\"" /etc/default/isc-dhcp-server
+
 systemctl restart tftpd-hpa.service
 systemctl restart rpcbind.service

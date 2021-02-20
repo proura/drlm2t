@@ -20,7 +20,7 @@ hosts:
   - name: installDRLM240
     testtype: 1
     filetorun: installCustomDRLM240.test
-    args: [ 'https://github.com/proura/drlm', 'develop', 'drlm_2.4.0_all.deb' ]
+    args: [ 'https://github.com/brainupdaters/drlm', 'develop', 'drlm_2.4.0_all.deb' ]
   # host: srv1 - test: 3
   # Add backup networt to drlm networks in order to do PXE recovers
   - name: addNetwork

@@ -1,19 +1,15 @@
 #!/usr/bin/bash
 
 # Test to install DRLM from custom repositori and branch
-# var0: repo URL name (ex.: https://github.com/proura/drlm)
-# var1: branch (ex.: hotfix/2.4.1)
-# var2: package to install (ex.: drlm-2.4.0-1git.el7.noarch.rpm)
-#
 # Expected output: 
 
-yum -y install openssh-clients openssl wget gzip tar gawk sed grep coreutils util-linux rpcbind dhcp-server tftp-server xinetd nfs-utils nfs4-acl-tools qemu-img sqlite redhat-lsb-core bash-completion 
+yum -y install openssh-clients openssl wget gzip tar gawk sed grep coreutils util-linux rpcbind dhcp tftp-server xinetd nfs-utils nfs4-acl-tools qemu-img sqlite redhat-lsb-core bash-completion 
 yum -y install epel-release 
 yum -y install git rpm-build golang
 
-git clone {{var0}}
+git clone https://github.com/brainupdaters/drlm
 cd drlm
-git checkout {{var1}}
+git checkout 2.3.1
 
 export GOCACHE="/root/.cache/go-build"
 export GOENV="/root/.config/go/env"
@@ -22,7 +18,7 @@ export GOPATH="/root/go"
 
 make rpm
 
-rpm -ivh {{var2}}
+rpm -ivh drlm-2.3.1-1git.el7.noarch.rpm
 
 echo "nbd" > /etc/modules-load.d/nbd.conf
 echo "options nbd max_part=8 nbds_max=1024" > /etc/modprobe.d/nbd.conf
