@@ -171,7 +171,7 @@ func (h *Host) createQCOW2() {
 			}
 			// Extract tar.gz file
 			log.Println("+ Uncompressing file " + fileDst)
-			ExtractTarGz(templates+"/templates/", fileDst)
+			ExtractTarGz(templates+"/templates", fileDst)
 		}
 
 		// Create destination Dir for test if no exists
