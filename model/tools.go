@@ -12,7 +12,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dustin/go-humanize"
 )
@@ -210,7 +212,10 @@ func ExtractTarGz(dst, fileDst string) {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := os.Mkdir(dst+"/"+header.Name, 0755); err != nil {
-				log.Fatalf("- ExtractTarGz: Mkdir() failed: %s", err.Error())
+				now := time.Now() // current local time
+				sec := now.Unix() // number of seconds since January 1, 1970 UTC
+				err := os.Rename(dst+"/"+header.Name, dst+"/"+header.Name+"_bkp_"+strconv.FormatInt(sec, 10))
+				log.Printf("- ExtractTarGz: Mkdir() failed: %s", err.Error())
 			}
 		case tar.TypeReg:
 			outFile, err := os.Create(dst + "/" + header.Name)
