@@ -210,7 +210,7 @@ func ExtractTarGz(dst, fileDst string) {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := os.Mkdir(dst+"/"+header.Name, 0755); err != nil {
-				log.Println("- ExtractTarGz: Destination " + dst + "/" + header.Name + " already exists")
+				log.Println("* ExtractTarGz: Destination " + dst + "/" + header.Name + " already exists")
 			}
 		case tar.TypeReg:
 			outFile, err := os.Create(dst + "/" + header.Name)
