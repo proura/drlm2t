@@ -1,0 +1,31 @@
+########################
+## Install dependencies
+########################
+$: sudo apt update && apt upgrade
+$: sudo apt install libvirt-dev gcc
+
+########################
+## Install Golang
+########################
+
+$: wget https://golang.org/dl/go1.16.linux-amd64.tar.gz
+$: sudo tar -C /usr/local -xzf go1.16.linux-amd64.tar.gz
+$: export PATH=\$PATH:/usr/local/go/bin
+$: echo "export PATH=\$PATH:/usr/local/go/bin" >> $HOME/.profile
+
+########################
+## Install drlm2t
+########################
+
+$: git clone https://github.com/proura/drlm2t 
+$: cd drlm2t
+$: go guild
+
+########################
+## Run a test in drlm2t
+########################
+
+$: ./drlm2t up fasttest
+$: ./drlm2t run fasttest
+$: ./drlm2t down fasttest
+$: ./drlm2t clean fasttest

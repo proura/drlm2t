@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	testserver "github.com/proura/drlm2t/drlm2t-server"
 	"github.com/proura/drlm2t/model"
-	testserver "github.com/proura/drlm2t/server"
 	"github.com/spf13/cobra"
 )
 

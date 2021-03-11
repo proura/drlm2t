@@ -15,14 +15,15 @@ var Infrastructure *DRLMTestingConfig
 var RunningInfrastructure *DRLMTestingConfig
 
 type DRLMTestingConfig struct {
-	Name      string `mpastructure:"name"`
-	Prefix    string `mapstructure:"prefix"`
-	Templates string `mpastructure:"templates"`
-	URL       string `mpastructure:"url"`
-	DefIP     string `mpastructure:"defip"`
-	DefMask   string `mpastructure:"defmask"`
-	DefDNS    string `mpastructure:"defdns"`
-	DefTem    string `mpastructure:"deftmp"`
+	Name        string `mpastructure:"name"`
+	Description string `mpastructure:"description"`
+	Prefix      string `mapstructure:"prefix"`
+	Templates   string `mpastructure:"templates"`
+	URL         string `mpastructure:"url"`
+	DefIP       string `mpastructure:"defip"`
+	DefMask     string `mpastructure:"defmask"`
+	DefDNS      string `mpastructure:"defdns"`
+	DefTem      string `mpastructure:"deftmp"`
 
 	Kvms  []Kvm     `mpastructure:"kvms"`
 	Nets  []Network `mapstructure:"nets"`

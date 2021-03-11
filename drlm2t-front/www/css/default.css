@@ -1,0 +1,117 @@
+body {
+  line-height: 1.2;
+  font-size: 0.8rem;
+}
+
+.table { 
+  caption-side: top;
+}
+
+.table caption {
+  background-color: #999999;
+  color: #ffffff;
+  padding: 5px 15px;
+}
+
+.container-xxl{
+  margin-top: 60px;
+}
+
+.btn-primary{
+  margin: 20px; 
+}
+
+.modal-backdrop {
+  background-color: grey;
+}
+
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: auto;
+}
+
+.form-signin .checkbox {
+  font-weight: 400;
+}
+
+.form-signin .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.form-signin .btn-primary{
+  margin: 0px; 
+}
+
+div#container-infra-zone-hosts .col{
+  max-width: 250px;
+}
+
+.row{
+  --bs-gutter-x: 0.5rem;
+}
+
+#card-host {
+  margin-bottom: 5px
+}
+
+#card-test {
+  margin-bottom: 1px;
+}
+
+#infrastruture-row {
+  margin-bottom: 1px;
+}
+
+#infrastruture-row .card{
+  background-color: #fcfcfc;
+}
+
+div#container-infra-zone {
+  max-width: 100%;
+}
+
+div#container-infra-zone p.card-text {
+  margin-bottom: 0.3rem;
+}
+
+#networks-row {
+  margin-bottom: 15px;
+}
+
+#networks-row .card{
+  background-color: #fdfdfd;
+}
+
+
+#card-host-test-tile{
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 0.7rem;
+}
+
+.col-lg-2{
+  width: 150px;
+}
+
