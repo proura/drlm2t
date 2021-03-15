@@ -1,6 +1,8 @@
 # Shared keys
 cfg/sshkey
 cfg/sshkey.pub
+cfg/drlm2t.crt
+cfg/drlm2t.key
 
 # Build of drlm2t
 drlm2t

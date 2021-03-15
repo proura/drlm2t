@@ -1,31 +1,53 @@
 ########################
 ## Install dependencies
 ########################
-$: sudo apt update && apt upgrade
-$: sudo apt install libvirt-dev gcc
+$ sudo apt update && apt upgrade
+$ sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst libvirt-dev gcc
+$ sudo usermod -aG libvirt $USER
+$ sudo usermod -aG kvm $USER    
 
 ########################
 ## Install Golang
 ########################
 
-$: wget https://golang.org/dl/go1.16.linux-amd64.tar.gz
-$: sudo tar -C /usr/local -xzf go1.16.linux-amd64.tar.gz
-$: export PATH=\$PATH:/usr/local/go/bin
-$: echo "export PATH=\$PATH:/usr/local/go/bin" >> $HOME/.profile
+$ wget https://golang.org/dl/go1.16.linux-amd64.tar.gz
+$ sudo tar -C /usr/local -xzf go1.16.linux-amd64.tar.gz
+$ export PATH=\$PATH:/usr/local/go/bin
+$ echo "export PATH=\$PATH:/usr/local/go/bin" >> $HOME/.profile
 
 ########################
-## Install drlm2t
+## build drlm2t
 ########################
 
-$: git clone https://github.com/proura/drlm2t 
-$: cd drlm2t
-$: go guild
+$ git clone https://github.com/proura/drlm2t 
+$ cd drlm2t
+$ go guild
+$ cd drlm2t-api
+$ go build
 
 ########################
-## Run a test in drlm2t
+## Configure drlm2t
 ########################
 
-$: ./drlm2t up fasttest
-$: ./drlm2t run fasttest
-$: ./drlm2t down fasttest
-$: ./drlm2t clean fasttest
+$ cd drlm2t/cfg
+$ openssl req -newkey rsa:4096 -nodes -keyout ./drlm2t.key -x509 -days 1825 -subj "/C=ES/ST=CAT/L=GI/O=SA/CN=$(hostname -s)" -out ./drlm2t.crt
+
+########################
+## Run a test in console
+########################
+
+$ ./drlm2t up fasttest
+$ ./drlm2t run fasttest
+$ ./drlm2t down fasttest
+$ ./drlm2t clean fasttest
+
+########################
+## Run a test in web
+########################
+
+$ vi ./drlm2t-api/drlm2t.yaml
+    # DRLM2T Config
+    drlm2tPath: "path_to_/drlm2t"
+$ ./drlm2t-api/drlm2t-api
+Open https://localhost:8080 in a web browser
+Default user and pass: "admindrlm2t"

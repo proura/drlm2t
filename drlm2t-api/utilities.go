@@ -6,9 +6,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"log"
+	"net/http"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 func validateHostname(h string) bool {
@@ -42,8 +45,27 @@ func generateJSONResponse(object interface{}) string {
 	return response
 }
 
+func generateYAMLResponse(object interface{}) string {
+	b, _ := yaml.Marshal(object)
+	response := string(b)
+
+	if len(response) > 0 {
+		//response = "{\"resultList\":{\"result\":[" + response[:len(response)-1] + "]}}"
+		response = "{\"resultList\":{\"result\":" + string(response) + "}}"
+	} else {
+		response = "{\"resultList\":{\"result\":[]}}"
+	}
+
+	return response
+}
+
 func fileNameWithoutExtension(fileName string) string {
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+func getField(r *http.Request, index int) string {
+	fields := r.Context().Value(ctxKey{}).([]string)
+	return fields[index]
 }
 
 //////////////// DEBUG BODY /////////////////////////////////////////

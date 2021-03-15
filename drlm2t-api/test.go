@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 
 	"github.com/proura/drlm2t/model"
 	"gopkg.in/yaml.v2"
@@ -40,6 +42,45 @@ func apiGetInfrastructures(w http.ResponseWriter, r *http.Request) {
 
 	response := generateJSONResponse(infrastructures)
 	fmt.Fprintln(w, response)
+}
+
+func apiGetInfrastructure(w http.ResponseWriter, r *http.Request) {
+
+	receivedInfrastructure := getField(r, 0)
+
+	content, err := ioutil.ReadFile(configDRLM2T.TestPath + "/" + receivedInfrastructure + "/infrastructure.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprintln(w, string(content))
+}
+
+func apiSetInfrastructure(w http.ResponseWriter, r *http.Request) {
+
+	receivedInfrastructure := getField(r, 0)
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	bodyString := string(bodyBytes)
+
+	f, err := os.Create(configDRLM2T.TestPath + "/" + receivedInfrastructure + "/infrastructure.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	_, err2 := f.WriteString(bodyString)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+
+	fmt.Println("updated " + configDRLM2T.TestPath + "/" + receivedInfrastructure + "/infrastructure.yaml")
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "ok")
 }
 
 func apiGetRunning(w http.ResponseWriter, r *http.Request) {
@@ -138,4 +179,48 @@ func apiGetTemplates(w http.ResponseWriter, r *http.Request) {
 	}
 	response := generateJSONResponse(templates)
 	fmt.Fprintln(w, response)
+}
+
+func apiUpTest(w http.ResponseWriter, r *http.Request) {
+	receivedTestName := getField(r, 0)
+	cmd := exec.Command("bash", "-c", "drlm2t up "+receivedTestName)
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "ok")
+}
+
+func apiDownTest(w http.ResponseWriter, r *http.Request) {
+	receivedTestName := getField(r, 0)
+	cmd := exec.Command("bash", "-c", "drlm2t down "+receivedTestName)
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "ok")
+}
+
+func apiRunTest(w http.ResponseWriter, r *http.Request) {
+	receivedTestName := getField(r, 0)
+	cmd := exec.Command("bash", "-c", "drlm2t run "+receivedTestName)
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "ok")
+}
+
+func apiCleanTest(w http.ResponseWriter, r *http.Request) {
+	receivedTestName := getField(r, 0)
+	cmd := exec.Command("bash", "-c", "drlm2t clean "+receivedTestName)
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "ok")
 }

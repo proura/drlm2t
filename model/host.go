@@ -7,8 +7,10 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
+	"github.com/proura/drlm2t/cfg"
 )
 
 type Host struct {
@@ -27,7 +29,11 @@ func (h *Host) initHost(index int) {
 		h.Template = h.GetHostKvm().DefTmp
 	}
 
-	h.Name = h.Prefix + "-" + Infrastructure.Name + "-" + h.Name
+	if strings.HasPrefix(h.Name, h.Prefix+"-"+Infrastructure.Name) {
+		//n.Name = n.Name
+	} else {
+		h.Name = h.Prefix + "-" + Infrastructure.Name + "-" + h.Name
+	}
 
 	for i, net := range h.Nets {
 		h.Nets[i].Name = h.Prefix + "-" + Infrastructure.Name + "-" + h.Nets[i].Name
@@ -193,7 +199,7 @@ func (h *Host) createQCOW2() {
 		}
 
 		// Copiar el testing de config a lloc
-		execCopy(templates+"/templates/"+h.Template+"/tests/config.test", "tests/"+Infrastructure.Name+"/tests/"+h.Name+"/0-config.test")
+		execCopy(templates+"/templates/"+h.Template+"/tests/config.test", cfg.Config.Drlm2tPath+"/tests/"+Infrastructure.Name+"/tests/"+h.Name+"/0-config.test")
 
 	}
 }
@@ -247,6 +253,7 @@ func (h *Host) generateXML() string {
 	slot = 3
 
 	for i, net := range h.Nets {
+		log.Println("============>" + net.Name)
 		xmlNet := libvirtxml.DomainInterface{
 			MAC: &libvirtxml.DomainInterfaceMAC{
 				Address: net.Mac},

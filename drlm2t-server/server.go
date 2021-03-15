@@ -10,8 +10,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/proura/drlm2t/cfg"
 	"github.com/proura/drlm2t/model"
 )
 
@@ -37,9 +39,10 @@ type Network struct {
 
 var runMode string
 
-func RunServer(rm string) {
+func RunServer(rm string, wg *sync.WaitGroup) *http.Server {
 
 	runMode = rm
+	srv := &http.Server{Addr: ":6060"}
 
 	log.Println("+ Starting server in " + runMode + " mode (http://" + model.GetMgmtIP() + ":6060/tests/)")
 
@@ -52,14 +55,19 @@ func RunServer(rm string) {
 		}
 	}
 
-	fs := http.FileServer(http.Dir("./tests"))
+	fs := http.FileServer(http.Dir(cfg.Config.Drlm2tPath + "/tests"))
 	http.Handle("/tests/", http.StripPrefix("/tests/", fs))
-
 	http.HandleFunc("/upload/", UploadOutput)
 	http.HandleFunc("/config/", ConfigHandler)
-	if err := http.ListenAndServe(":6060", nil); err != nil {
-		panic(err)
-	}
+
+	go func() {
+		defer wg.Done()
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println("+ Stopping server in " + runMode + " mode (http://" + model.GetMgmtIP() + ":6060/tests/)")
+		}
+	}()
+
+	return srv
 }
 
 func UploadOutput(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +77,7 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 	hostURL := URL[4]
 	fileURL := URL[5]
 
-	dst := "tests/" + testURL + "/tests/" + hostURL + "/" + fileURL
+	dst := cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/" + fileURL
 
 	file, err := os.Create(dst)
 	if err != nil {
@@ -96,7 +104,7 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 
 				if strconv.Itoa(t.Index)+"-"+t.Name+".output" == fileURL || strconv.Itoa(t.Index)+"-"+splitfile[0]+".output" == fileURL {
 
-					contentOoutput, err := ioutil.ReadFile("tests/" + testURL + "/tests/" + hostURL + "/" + fileURL)
+					contentOoutput, err := ioutil.ReadFile(cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/" + fileURL)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -126,7 +134,7 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 					}
 
 					// Get the content of the test
-					contentTest, err := ioutil.ReadFile("tests/" + testURL + "/tests/" + hostURL + "/" + strconv.Itoa(t.Index) + "-" + splitfile[0] + ".test")
+					contentTest, err := ioutil.ReadFile(cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/" + strconv.Itoa(t.Index) + "-" + splitfile[0] + ".test")
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -140,7 +148,7 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 					} else {
 						resPrefix = "ERR"
 					}
-					dst := "tests/" + testURL + "/tests/" + hostURL + "/done/" + strconv.Itoa(t.Index) + "-" + resPrefix + "-" + splitfile[0] + ".test"
+					dst := cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/done/" + strconv.Itoa(t.Index) + "-" + resPrefix + "-" + splitfile[0] + ".test"
 
 					f, err := os.OpenFile(dst, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 					if err != nil {
@@ -173,11 +181,11 @@ func UploadOutput(w http.ResponseWriter, r *http.Request) {
 					}
 					/////////////////////////////////////
 
-					err = os.Remove("tests/" + testURL + "/tests/" + hostURL + "/" + strconv.Itoa(t.Index) + "-" + splitfile[0] + ".test")
+					err = os.Remove(cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/" + strconv.Itoa(t.Index) + "-" + splitfile[0] + ".test")
 					if err != nil {
 						log.Println("-", err)
 					}
-					err = os.Remove("tests/" + testURL + "/tests/" + hostURL + "/" + fileURL)
+					err = os.Remove(cfg.Config.Drlm2tPath + "/tests/" + testURL + "/tests/" + hostURL + "/" + fileURL)
 					if err != nil {
 						log.Println("-", err)
 					}

@@ -6,7 +6,8 @@ var InfrastructuresTable = {
       running: 'loading',
       templates: 'loading',
       infrastructureToLoad: '',
-      templateToLoad: ''
+      templateToLoad: '',
+      infraToEdit: 'test'
     }
   },
   template: `
@@ -18,6 +19,28 @@ var InfrastructuresTable = {
             <tbody v-for="infrastructure in infrastructures" v-bind:key="infrastructure.Name">
               <tr>
                 <td v-on:click="setInfrastructure(infrastructure)">{{ infrastructure.Name }}</td>
+                <button href="#" data-bs-toggle="modal" :data-bs-target="'#modal-' + infrastructure.Name" v-on:click="updateInfraToEdit(infrastructure.Name)"> edit </button>
+                <div class="modal fade" :id="'modal-' + infrastructure.Name" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h6 class="modal-title"><strong>Test Name:</strong><em> {{ infrastructure.Name }} </em> </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form>
+                          <div class="mb-3">
+                            <textarea class="form-control" :bind="infraToEdit" :id="'message-text-'+ infrastructure.Name">{{ infraToEdit }}</textarea>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" v-on:click="sendInfraToEdit(infrastructure.Name)">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </tr>
             </tbody>
           </table>
@@ -70,12 +93,28 @@ var InfrastructuresTable = {
       //this.templateToLoad = template;
       this.loadTemplate(template)
     },
+    updateInfraToEdit: async function(infraName){
+      fetch("/api/infrastructures/"+infraName)
+      .then(response => response.text())
+      .then(text => { this.infraToEdit = text });
+    },
+    sendInfraToEdit: function(infraConfig){
+      var value = document.getElementById('message-text-'+infraConfig).value;
+
+      console.log(value)
+      fetch('/api/infrastructures/'+infraConfig,{method: 'POST', body: value})
+      // .then(response => {
+      //   if (response.ok){
+      //     this.context.loggedin = false;
+      //   }
+      // });
+    },
     refresh: function() {
       if (this.infrastructureToLoad != ''){
         this.searchRunning()
         this.loadInfrasctructure(this.infrastructureToLoad)
       }
-      setTimeout(this.refresh,1000)
+      setTimeout(this.refresh,3000)
     },
     loadInfrasctructure(infrastructure){
       if (infrastructure == ''){
@@ -105,10 +144,10 @@ var InfrastructuresTable = {
             <div class="card">
               <div class="card-header">
                 <b>Test Name:</b> ` + infrastructure.Name + `
-                <button>Up</button>
-                <button>Run</button>
-                <button>Down</button>
-                <button>Clean</button>
+                </form id="upinfrabutton"><button onClick="callApiUp('`+infrastructure.Name+`')">Up</button></form>
+                </form id="runinfrabutton"><button onClick="callApiRun('`+infrastructure.Name+`')">Run</button></form>
+                </form id="downinfrabutton"><button onClick="callApiDown('`+infrastructure.Name+`')">Down</button></form>
+                </form id="cleaninfrabutton"><button onClick="callApiClean('`+infrastructure.Name+`')">Clean</button></form>
               </div>
               <div class="card-body">
                 <p class="card-text">` + infrastructure.Description + `</p>
@@ -117,6 +156,35 @@ var InfrastructuresTable = {
           </div>
         </div>
       `
+
+      var script = document.createElement("script");
+      script.innerHTML = `
+        function callApiUp(infra){
+          console.log("UP: " + infra);
+          fetch('/api/up/'+infra,{method: 'POST'});
+          //.then(response => {if (response.ok){this.context.loggedin = false;}});
+          //event.preventDefault();
+        }
+        function callApiDown(infra){
+          console.log("DOWN: " + infra);
+          fetch('/api/down/'+infra,{method: 'POST'});
+          //.then(response => {if (response.ok){this.context.loggedin = false;}});
+          //event.preventDefault();
+        }
+        function callApiRun(infra){
+          console.log("RUN: " + infra);
+          fetch('/api/run/'+infra,{method: 'POST'})
+          //.then(response => {if (response.ok){this.context.loggedin = false;}});
+          //event.preventDefault();
+        }
+        function callApiClean(infra){
+          console.log("CLEAN: " + infra);
+          fetch('/api/clean/'+infra,{method: 'POST'})
+          //.then(response => {if (response.ok){this.context.loggedin = false;}});
+          //event.preventDefault();
+        }
+      `
+      document.body.appendChild(script);
 
       // Llistat de les xarxes
       for (const Net in infrastructure.Nets) {
@@ -259,22 +327,8 @@ var InfrastructuresTable = {
             </div>
           </div>
         </div>
-
-
-
-
-
-
-
-             
-
-
         `
       }
-
-
-
-
     }
   }
 };

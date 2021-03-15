@@ -1,18 +1,2 @@
-# config actually not in use
-
-network:
-    name: def1
-    ip: 192.168.20.1
-    mask: 255.255.255.0
-    dhcpstartip: 192.168.20.1
-    dhcpendip: 192.168.20.150
-
-# Name        string `mapstructure:"name"`
-# Kvm         string `mapstructure:"kvm"`
-# Mac         string `mapstructure:"mac"`
-# IP          string `mapstructure:"ip"`
-# Mask        string `mapstructure:"mask"`
-# Gateway     string `mapstructure:"gateway"`
-# DNS         string `mapstructure:"dns"`
-# DhcpStartIP string `mapstructure:"dhcpstartip"`
-# DhcpEndIP   string `mapstructure:"dhcpendip"`
+# DRLM2T config
+drlm2tPath: "/home/pau/src/proura/drlm2t"

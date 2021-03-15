@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/proura/drlm2t/cfg"
 )
 
 type Test struct {
@@ -80,8 +82,8 @@ func InitTesting(mode int) {
 			Infrastructure.Hosts[index].Tests[it].Index = it
 		}
 
-		if !dirExists("tests/" + Infrastructure.Name + "/tests/" + h.Name) {
-			createDir("tests/" + Infrastructure.Name + "/tests/" + h.Name + "/done")
+		if !dirExists(cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests/" + h.Name) {
+			createDir(cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests/" + h.Name + "/done")
 		}
 
 	}
@@ -182,11 +184,11 @@ func InitTesting(mode int) {
 }
 
 func cleanTests() {
-	if Infrastructure.Name != "" && dirExists("tests/"+Infrastructure.Name+"/tests") {
-		RemoveDirEsp("tests/" + Infrastructure.Name + "/tests")
-		log.Println("+ Tests dir tests/" + Infrastructure.Name + "/tests deleted")
+	if Infrastructure.Name != "" && dirExists(cfg.Config.Drlm2tPath+"/tests/"+Infrastructure.Name+"/tests") {
+		RemoveDirEsp(cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests")
+		log.Println("+ Tests dir " + cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests deleted")
 	} else {
-		log.Println("- Tests dir tests/" + Infrastructure.Name + "/tests no exists")
+		log.Println("- Tests dir " + cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests no exists")
 	}
 }
 
@@ -302,7 +304,7 @@ func (t *Test) PublishTest(host Host) {
 	if t.FileToRun == "" && t.CommandToRun == "" {
 		log.Println("- Test " + t.Name + " has nothing to run")
 	} else if t.CommandToRun != "" {
-		newLocation := "tests/" + Infrastructure.Name + "/tests/" + host.Name + "/" + strconv.Itoa(t.Index) + "-" + t.Name + ".test"
+		newLocation := cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests/" + host.Name + "/" + strconv.Itoa(t.Index) + "-" + t.Name + ".test"
 		f, err := os.Create(newLocation)
 		if err != nil {
 			log.Println(err)
@@ -321,7 +323,7 @@ func (t *Test) PublishTest(host Host) {
 			return
 		}
 	} else {
-		srcLocation := "tests/" + Infrastructure.Name + "/" + t.FileToRun
+		srcLocation := cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/" + t.FileToRun
 		if !fileExists(srcLocation) {
 			srcLocation = Infrastructure.Templates + "/templates/" + host.Template + "/tests/" + t.FileToRun
 			if !fileExists(srcLocation) {
@@ -332,7 +334,7 @@ func (t *Test) PublishTest(host Host) {
 
 		log.Println("+ " + host.Name + ": Test <" + strconv.Itoa(t.Index) + "-" + t.Name + "> created successfully")
 
-		dstLocation := "tests/" + Infrastructure.Name + "/tests/" + host.Name + "/" + strconv.Itoa(t.Index) + "-" + t.FileToRun
+		dstLocation := cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/tests/" + host.Name + "/" + strconv.Itoa(t.Index) + "-" + t.FileToRun
 
 		from, err := os.Open(srcLocation)
 		if err != nil {

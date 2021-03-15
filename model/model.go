@@ -6,7 +6,9 @@ import (
 	parser "net"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/proura/drlm2t/cfg"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
@@ -33,7 +35,7 @@ type DRLMTestingConfig struct {
 func LoadInfrastructure(cfgName string) {
 	viper.SetConfigName("infrastructure")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./tests/" + cfgName)
+	viper.AddConfigPath(cfg.Config.Drlm2tPath + "/tests/" + cfgName)
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
@@ -45,10 +47,10 @@ func LoadInfrastructure(cfgName string) {
 }
 
 func LoadRunningInfrastructure(cfgName string) {
-	if fileExists("./tests/" + cfgName + "/running.yaml") {
+	if fileExists(cfg.Config.Drlm2tPath + "/tests/" + cfgName + "/running.yaml") {
 		viper.SetConfigName("running")
 		viper.SetConfigType("yaml")
-		viper.AddConfigPath("./tests/" + cfgName)
+		viper.AddConfigPath(cfg.Config.Drlm2tPath + "/tests/" + cfgName)
 		if err := viper.ReadInConfig(); err != nil {
 			log.Fatalf("Error reading config file, %s", err)
 		}
@@ -70,7 +72,7 @@ func InitInfrastructure(cfgName string) {
 	}
 	// Set Default Global path to qcow2 files (with libvirt permissions)
 	if Infrastructure.Templates == "" {
-		Infrastructure.Templates, _ = filepath.Abs("./drlm2t-templates")
+		Infrastructure.Templates, _ = filepath.Abs(cfg.Config.Drlm2tPath + "/drlm2t-templates")
 	}
 
 	// Set Default Global path to qcow2 files (with libvirt permissions)
@@ -158,33 +160,57 @@ func InitInfrastructure(cfgName string) {
 	for index := range Infrastructure.Kvms {
 		Infrastructure.Kvms[index].initKvm()
 	}
+
 	// Add management network for each KVM
 	for _, kvm := range Infrastructure.Kvms {
-		var net Network
-		net.Name = "mgmt"
-		net.Kvm = kvm.HostName
-		ip := parser.ParseIP(kvm.DefIP).To4()
-		ip[3] = 1
-		net.IP = ip.String()
-		net.Gateway = ip.String()
-		net.DNS = kvm.DefDNS
-		ip[3] = 50
-		net.DhcpStartIP = ip.String()
-		ip[3] = 200
-		net.DhcpEndIP = ip.String()
-		Infrastructure.Nets = append(Infrastructure.Nets, net)
+		foundMgmtNet := false
+		for _, netikvm := range Infrastructure.Nets {
+			if netikvm.Kvm == kvm.HostName {
+				if strings.HasSuffix(netikvm.Name, "-mgmt") {
+					foundMgmtNet = true
+				}
+			}
+		}
+		if !foundMgmtNet {
+			var net Network
+			net.Name = "mgmt"
+			net.Kvm = kvm.HostName
+			ip := parser.ParseIP(kvm.DefIP).To4()
+			ip[3] = 1
+			net.IP = ip.String()
+			net.Gateway = ip.String()
+			net.DNS = kvm.DefDNS
+			ip[3] = 50
+			net.DhcpStartIP = ip.String()
+			ip[3] = 200
+			net.DhcpEndIP = ip.String()
+			log.Println("Appen1 net =========> " + net.Name)
+			Infrastructure.Nets = append(Infrastructure.Nets, net)
+		}
 	}
 	// Add management network in hosts
 	for index := range Infrastructure.Hosts {
-		var net Network
-		net.Name = "mgmt"
-		Infrastructure.Hosts[index].Nets = append(Infrastructure.Hosts[index].Nets, net)
+		foundMgmtNet := false
+		for _, netInHost := range Infrastructure.Hosts[index].Nets {
+			if strings.HasSuffix(netInHost.Name, "-mgmt") {
+				foundMgmtNet = true
+			}
+		}
+		if !foundMgmtNet {
+			var net Network
+			net.Name = "mgmt"
+			log.Println("Appen2 net =========> " + net.Name)
+
+			Infrastructure.Hosts[index].Nets = append(Infrastructure.Hosts[index].Nets, net)
+		}
 	}
 	// Add default network in hosts without networks
 	for index, host := range Infrastructure.Hosts {
 		if len(host.Nets) == 1 {
 			var net Network
 			net.Name = "default"
+			log.Println("Appen3 net =========> " + net.Name)
+
 			Infrastructure.Hosts[index].Nets = append(Infrastructure.Hosts[index].Nets, net)
 		}
 	}
@@ -197,11 +223,20 @@ func InitInfrastructure(cfgName string) {
 				if net.Name == nethost.Name && net.Kvm == host.Kvm {
 					found = true
 				}
+				if strings.HasSuffix(net.Name, nethost.Name) && net.Kvm == host.Kvm {
+					found = true
+				}
+				if strings.HasSuffix(nethost.Name, net.Name) && net.Kvm == host.Kvm {
+					found = true
+				}
+
 			}
 			if !found {
 				var net Network
 				net.Name = nethost.Name
 				net.Kvm = host.Kvm
+				log.Println("Appen4 net =========> " + net.Name)
+
 				Infrastructure.Nets = append(Infrastructure.Nets, net)
 			}
 		}
@@ -220,9 +255,9 @@ func InitInfrastructure(cfgName string) {
 func SaveRunningIfrastructure() {
 	running, _ := yaml.Marshal(Infrastructure)
 	//Save Infrastructure to running.yaml file
-	err := ioutil.WriteFile("./tests/"+Infrastructure.Name+"/running.yaml", running, 0644)
+	err := ioutil.WriteFile(cfg.Config.Drlm2tPath+"/tests/"+Infrastructure.Name+"/running.yaml", running, 0644)
 	if err != nil {
-		log.Fatal("- Error saving ./tests/" + Infrastructure.Name + "/running.yaml file")
+		log.Fatal("- Error saving " + cfg.Config.Drlm2tPath + "/tests/" + Infrastructure.Name + "/running.yaml file")
 	}
 }
 
@@ -267,6 +302,10 @@ func (infra *DRLMTestingConfig) DeleteHosts() {
 
 	hostname, _ := os.Hostname()
 
+	if infra.Hosts == nil {
+		return
+	}
+
 	for index := range infra.Hosts {
 		if infra.Hosts[index].Kvm == "localhost" || infra.Hosts[index].Kvm == hostname {
 			infra.Hosts[index].deleteHost()
@@ -278,7 +317,8 @@ func (infra *DRLMTestingConfig) Clean() {
 	log.Println("DELETING RUNNING FILES")
 
 	if Infrastructure == nil {
-		log.Fatalln("- No Infrastructure to clean")
+		log.Println("- No Infrastructure to clean")
+		return
 	}
 
 	hostname, _ := os.Hostname()
@@ -299,15 +339,15 @@ func (infra *DRLMTestingConfig) Clean() {
 	cleanTests()
 
 	//Delete running.yaml file
-	if fileExists("./tests/" + infra.Name + "/running.yaml") {
-		err := os.Remove("./tests/" + infra.Name + "/running.yaml")
+	if fileExists(cfg.Config.Drlm2tPath + "/tests/" + infra.Name + "/running.yaml") {
+		err := os.Remove(cfg.Config.Drlm2tPath + "/tests/" + infra.Name + "/running.yaml")
 		if err != nil {
 			log.Println("-", err)
 		} else {
-			log.Println("+ ./tests/" + infra.Name + "/running.yaml file deleted")
+			log.Println("+ " + cfg.Config.Drlm2tPath + "/tests/" + infra.Name + "/running.yaml file deleted")
 		}
 	} else {
-		log.Println("- ./tests/" + infra.Name + "/running.yaml does not exist")
+		log.Println("- " + cfg.Config.Drlm2tPath + "/tests/" + infra.Name + "/running.yaml does not exist")
 	}
 
 }

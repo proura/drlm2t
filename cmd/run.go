@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"log"
 	"sync"
 	"time"
@@ -13,13 +14,8 @@ import (
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Run all tests",
+	Long:  `Run all tests`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			log.Fatalln("No test specified. Example: drlm2t run example")
@@ -28,13 +24,10 @@ to quickly create a Cobra application.`,
 		model.LoadRunningInfrastructure(args[0])
 		model.Infrastructure = model.RunningInfrastructure
 
-		wg := new(sync.WaitGroup)
-		wg.Add(1)
-
-		go func() {
-			testserver.RunServer("testing")
-			wg.Done()
-		}()
+		// Arranquem el servidor per enviar i rebre les configs
+		httpServerExitDone := &sync.WaitGroup{}
+		httpServerExitDone.Add(1)
+		srv := testserver.RunServer("testing", httpServerExitDone)
 
 		if model.Infrastructure == nil {
 			log.Fatalln("- There is nothing to run!")
@@ -44,10 +37,12 @@ to quickly create a Cobra application.`,
 			time.Sleep(1 * time.Second)
 		}
 
-		log.Println("+ ALL TESTS DONE. (ctrl+C to exit)")
+		log.Println("+ ALL TESTS DONE.")
 
-		wg.Wait()
-
+		if err := srv.Shutdown(context.TODO()); err != nil {
+			log.Println(err.Error())
+		}
+		httpServerExitDone.Wait()
 	},
 }
 

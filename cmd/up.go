@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"log"
 	"os"
 	"sync"
 	"time"
 
+	"github.com/proura/drlm2t/cfg"
 	testserver "github.com/proura/drlm2t/drlm2t-server"
 	"github.com/proura/drlm2t/model"
 	"github.com/spf13/cobra"
@@ -14,13 +16,8 @@ import (
 // upCmd represents the up command
 var upCmd = &cobra.Command{
 	Use:   "up",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Starts all networks and VM of a test",
+	Long:  `Starts all networks and VM of a test`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		init, _ := cmd.Flags().GetBool("init")
@@ -32,9 +29,9 @@ to quickly create a Cobra application.`,
 		if len(args) < 1 {
 			log.Fatalln("No test specified. Example: drlm2t up example")
 		} else {
-			_, err := os.Stat("./tests/" + args[0])
+			_, err := os.Stat(cfg.Config.Drlm2tPath + "/tests/" + args[0])
 			if os.IsNotExist(err) {
-				log.Fatalln("Specified example", args[0], "does not exists")
+				log.Fatalln("Specified infrastructure", args[0], "does not exists")
 			}
 		}
 
@@ -55,14 +52,10 @@ to quickly create a Cobra application.`,
 
 		model.SaveRunningIfrastructure()
 
-		// Creem un wait group per deixar el server actiu fins que tots els servers estiguin configurats
-		wg := new(sync.WaitGroup)
-		wg.Add(1)
-
 		// Arranquem el servidor per enviar i rebre les configs
-		go func() {
-			testserver.RunServer("config")
-		}()
+		httpServerExitDone := &sync.WaitGroup{}
+		httpServerExitDone.Add(1)
+		srv := testserver.RunServer("config", httpServerExitDone)
 
 		// Creem les xarxes i els hosts
 		model.Infrastructure.CreateNetworks()
@@ -73,8 +66,10 @@ to quickly create a Cobra application.`,
 			time.Sleep(1 * time.Second)
 		}
 
-		wg.Done()
-		wg.Wait()
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Println(err.Error())
+		}
+		httpServerExitDone.Wait()
 	},
 }
 

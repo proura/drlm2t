@@ -23,8 +23,15 @@ var routes = []route{
 	newRoute("GET", "/((images|static|css|js)/[a-zA-Z0-9._/-]+)", staticGet),
 	// API functions ////////////////////////////////
 	newRoute("GET", "/api/infrastructures", middlewareUserToken(apiGetInfrastructures)),
+	newRoute("GET", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiGetInfrastructure)),
+	newRoute("POST", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiSetInfrastructure)),
 	newRoute("GET", "/api/running", middlewareUserToken(apiGetRunning)),
 	newRoute("GET", "/api/templates", middlewareUserToken(apiGetTemplates)),
+	newRoute("POST", "/api/up/([a-zA-Z0-9._-]+)", middlewareUserToken(apiUpTest)),
+	newRoute("POST", "/api/down/([a-zA-Z0-9._-]+)", middlewareUserToken(apiDownTest)),
+	newRoute("POST", "/api/run/([a-zA-Z0-9._-]+)", middlewareUserToken(apiRunTest)),
+	newRoute("POST", "/api/clean/([a-zA-Z0-9._-]+)", middlewareUserToken(apiCleanTest)),
+
 	// User Control Functions ///////////////////////
 	newRoute("POST", "/signin", userSignin),
 	newRoute("POST", "/logout", userLogout),

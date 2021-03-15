@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/proura/drlm2t/cfg"
 	"github.com/proura/drlm2t/model"
 	"github.com/spf13/cobra"
 )
@@ -11,13 +12,8 @@ import (
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Remove al vm and test results",
+	Long:  `Remove al vm and test results`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("==CLEAN CALLED==")
 
@@ -25,9 +21,9 @@ to quickly create a Cobra application.`,
 		if len(args) < 1 {
 			log.Fatalln("No test specified. Example: drlm2t clean example")
 		} else {
-			_, err := os.Stat("./tests/" + args[0])
+			_, err := os.Stat(cfg.Config.Drlm2tPath + "/tests/" + args[0])
 			if os.IsNotExist(err) {
-				log.Fatalln("Specified example \"", args[0], "\" does not exists")
+				log.Fatalln("Specified infrastructure \"", args[0], "\" does not exists")
 			}
 		}
 
