@@ -7,7 +7,9 @@ var InfrastructuresTable = {
       templates: 'loading',
       infrastructureToLoad: '',
       templateToLoad: '',
-      infraToEdit: 'test'
+      infraToEdit: 'test',
+      currentStatus: '',
+      testOutput: ''
     }
   },
   template: `
@@ -28,7 +30,7 @@ var InfrastructuresTable = {
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
                       <div class="modal-body">
-                        <form>
+                        <form >
                           <div class="mb-3">
                             <textarea class="form-control" :bind="infraToEdit" :id="'message-text-'+ infrastructure.Name">{{ infraToEdit }}</textarea>
                           </div>
@@ -36,7 +38,8 @@ var InfrastructuresTable = {
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" v-on:click="sendInfraToEdit(infrastructure.Name)">Save</button>
+                        <button type="button" class="btn btn-danger" v-on:click="deleteInfra(infrastructure.Name)" data-bs-dismiss="modal">Delete</button>
+                        <button type="button" class="btn btn-primary" v-on:click="sendInfraToEdit(infrastructure.Name)" data-bs-dismiss="modal">Save</button>
                       </div>
                     </div>
                   </div>
@@ -45,6 +48,16 @@ var InfrastructuresTable = {
             </tbody>
           </table>
         </div>
+
+        <div class="row" style="margin-bottom: 15px;">
+          <div class="col-8">
+            <input type="text" id="textNewInfra" class="form-control" placeholder="Test Name" aria-label="Test name" style="padding:0rem 0rem; font-size:inherit;">
+          </div>
+          <div class="col">
+            <button v-on:click="sendNewInfra()">Add</button>
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="table table-hover">
             <caption>Templates</caption>
@@ -56,14 +69,27 @@ var InfrastructuresTable = {
           </table>
         </div>
       </div>
+
       <div class="col" id="infrastructure-zone">
       </div>
+     
+      <div class="modal fade" :id="'modal-show-test-results'" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title"><strong>Test Output:</strong></h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="white-space: pre-line"><code id="modal-show-test-results-content"></code></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   `,
   created() {
     this.searchInfrastructure();
     this.refresh();
-    //this.searchRunning();
     this.searchTemplates();
   },
   methods: {
@@ -73,7 +99,6 @@ var InfrastructuresTable = {
         .then(json => {this.infrastructures = json.resultList.result;});
     },
     searchRunning: function () {
-      console.log("fetch running!!!")
       fetch('/api/running')
         .then(response => response.json())
         .then(json => {this.running = json.resultList.result;});
@@ -90,8 +115,7 @@ var InfrastructuresTable = {
     },
     setTemplate: function(template){
       this.infrastructureToLoad = '';
-      //this.templateToLoad = template;
-      this.loadTemplate(template)
+      this.loadTemplate(template);
     },
     updateInfraToEdit: async function(infraName){
       fetch("/api/infrastructures/"+infraName)
@@ -100,21 +124,26 @@ var InfrastructuresTable = {
     },
     sendInfraToEdit: function(infraConfig){
       var value = document.getElementById('message-text-'+infraConfig).value;
-
-      console.log(value)
-      fetch('/api/infrastructures/'+infraConfig,{method: 'POST', body: value})
-      // .then(response => {
-      //   if (response.ok){
-      //     this.context.loggedin = false;
-      //   }
-      // });
+      fetch('/api/infrastructures/'+infraConfig,{method: 'POST', body: value});
+    },
+    sendNewInfra: function(){
+      var value = document.getElementById('textNewInfra').value;
+      document.getElementById('textNewInfra').value = "";
+      fetch('/api/infrastructures/'+value,{method: 'PUT'});
+      location.reload();
+    },
+    deleteInfra: function(infraConfig){
+      if (confirm('Are you sure you want to delete ' + infraConfig + ' test?')) {
+        fetch('/api/infrastructures/'+infraConfig,{method: 'DELETE'});
+        location.reload();
+      }     
     },
     refresh: function() {
       if (this.infrastructureToLoad != ''){
-        this.searchRunning()
-        this.loadInfrasctructure(this.infrastructureToLoad)
+        this.searchRunning();
+        this.loadInfrasctructure(this.infrastructureToLoad);
       }
-      setTimeout(this.refresh,3000)
+      setTimeout(this.refresh, 1000);
     },
     loadInfrasctructure(infrastructure){
       if (infrastructure == ''){
@@ -144,10 +173,10 @@ var InfrastructuresTable = {
             <div class="card">
               <div class="card-header">
                 <b>Test Name:</b> ` + infrastructure.Name + `
-                </form id="upinfrabutton"><button onClick="callApiUp('`+infrastructure.Name+`')">Up</button></form>
-                </form id="runinfrabutton"><button onClick="callApiRun('`+infrastructure.Name+`')">Run</button></form>
-                </form id="downinfrabutton"><button onClick="callApiDown('`+infrastructure.Name+`')">Down</button></form>
-                </form id="cleaninfrabutton"><button onClick="callApiClean('`+infrastructure.Name+`')">Clean</button></form>
+                <button id="upinfrabutton" onClick="callApiUp('`+infrastructure.Name+`')" disabled>Up</button>
+                <button id="runinfrabutton" onClick="callApiRun('`+infrastructure.Name+`')" disabled>Run</button>
+                <button id="downinfrabutton" onClick="callApiDown('`+infrastructure.Name+`')" disabled>Down</button>
+                <button id="cleaninfrabutton" onClick="callApiClean('`+infrastructure.Name+`')" disabled>Clean</button>
               </div>
               <div class="card-body">
                 <p class="card-text">` + infrastructure.Description + `</p>
@@ -157,34 +186,84 @@ var InfrastructuresTable = {
         </div>
       `
 
-      var script = document.createElement("script");
-      script.innerHTML = `
-        function callApiUp(infra){
-          console.log("UP: " + infra);
-          fetch('/api/up/'+infra,{method: 'POST'});
-          //.then(response => {if (response.ok){this.context.loggedin = false;}});
-          //event.preventDefault();
-        }
-        function callApiDown(infra){
-          console.log("DOWN: " + infra);
-          fetch('/api/down/'+infra,{method: 'POST'});
-          //.then(response => {if (response.ok){this.context.loggedin = false;}});
-          //event.preventDefault();
-        }
-        function callApiRun(infra){
-          console.log("RUN: " + infra);
-          fetch('/api/run/'+infra,{method: 'POST'})
-          //.then(response => {if (response.ok){this.context.loggedin = false;}});
-          //event.preventDefault();
-        }
-        function callApiClean(infra){
-          console.log("CLEAN: " + infra);
-          fetch('/api/clean/'+infra,{method: 'POST'})
-          //.then(response => {if (response.ok){this.context.loggedin = false;}});
-          //event.preventDefault();
-        }
+      document.getElementById('personalizedScript').innerHTML = `
+          function callApiUp(infra){
+            fetch('/api/up/'+infra,{method: 'POST'});
+          }
+          function callApiDown(infra){
+            fetch('/api/down/'+infra,{method: 'POST'});
+          }
+          function callApiRun(infra){
+            fetch('/api/run/'+infra,{method: 'POST'})
+          }
+          function callApiClean(infra){
+            fetch('/api/clean/'+infra,{method: 'POST'})
+          }
+          function showTestModal(infraName, hostI, testI){
+            fetch('/api/infrastructures/'+infraName+'/hosts/'+hostI+'/tests/'+testI+'/result')
+            .then(response => response.text())
+            .then(text => { document.getElementById('modal-show-test-results-content').innerHTML = text });           
+          }
       `
-      document.body.appendChild(script);
+      
+      if (runningFound){
+        if (this.running[runningIndex].Status == "upping") {
+          this.currentStatus = 'upping'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        }
+        else if (this.running[runningIndex].Status == "up") {
+          this.currentStatus = 'up'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = false;
+          document.getElementById('downinfrabutton').disabled = false;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        } 
+        else if (this.running[runningIndex].Status == "running") {
+          this.currentStatus = 'running'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        } 
+        else if (this.running[runningIndex].Status == "done") {
+          this.currentStatus = 'done'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = false;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        }
+        else if (this.running[runningIndex].Status == "downing"){
+          this.currentStatus = 'downing'
+          this.refreshTime = '1000'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        } 
+        else if (this.running[runningIndex].Status == "down") {
+          this.currentStatus = 'down'
+          document.getElementById('upinfrabutton').disabled = false;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('cleaninfrabutton').disabled = false;
+        }
+        else if (this.running[runningIndex].Status == "cleaning") {
+          this.currentStatus = 'cleaning'
+          document.getElementById('upinfrabutton').disabled = true;
+          document.getElementById('runinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('cleaninfrabutton').disabled = true;
+        } 
+      } else {
+        this.currentStatus = ''
+        document.getElementById('upinfrabutton').disabled = false;
+        document.getElementById('runinfrabutton').disabled = true;
+        document.getElementById('downinfrabutton').disabled = true;
+        document.getElementById('cleaninfrabutton').disabled = true;
+      }
 
       // Llistat de les xarxes
       for (const Net in infrastructure.Nets) {
@@ -211,10 +290,31 @@ var InfrastructuresTable = {
       // Llistat de hosts
       for (const Host in infrastructure.Hosts) {
 
+        var hostStyle = 'style="background: #fff"';
+        var imageLoading = '';
+
+        if (this.currentStatus == 'upping') {
+          hostStyle = 'style="background: #EBF5FB"';
+          imageLoading = '<img src="static/loading.gif" width=16/>';
+        }
+        else if (this.currentStatus == 'down'){
+          hostStyle = 'style="background: #EBF5FB"';
+          imageLoading = '';
+        }
+        else if (this.currentStatus == 'up' || this.currentStatus == 'running' || this.currentStatus == 'done' || this.currentStatus == 'downing') {
+          hostStyle = 'style="background: #EAFAF1"';
+          imageLoading = '';
+        }
+
+        if (runningFound && this.currentStatus == 'upping' && this.running[runningIndex].Hosts[nHost].Tests[0].Status == 1){
+          hostStyle = 'style="background: #EAFAF1"';
+          imageLoading = '';
+        }
+
         document.getElementById('container-infra-zone-hosts').innerHTML += `
         <div class="col col-md" id="container-infra-zone-hosts-` + infrastructure.Hosts[Host].Name + `">
-          <div class="card" id="card-host">
-            <div class="card-header"><b>Host Name:</b> ` +  infrastructure.Hosts[Host].Name + `</div>
+          <div class="card" id="card-host" ` + hostStyle + `>
+            <div class="card-header">` + imageLoading + `<b> Host Name:</b> ` +  infrastructure.Hosts[Host].Name + `</div>
             <div class="card-body" id="container-infra-zone-hosts-` + infrastructure.Hosts[Host].Name + `-nets">
             <p class="card-text">Template: ` + infrastructure.Hosts[Host].Template + `</p>
             </div>
@@ -235,6 +335,7 @@ var InfrastructuresTable = {
 
         //Llistat de tests
         var nTest = 1;
+        var antTestStatus = 1;
         for (const Test in infrastructure.Hosts[Host].Tests) {
           var dependencies = ""
           if ( infrastructure.Hosts[Host].Tests[Test].Dependencies == null ) {
@@ -269,24 +370,35 @@ var InfrastructuresTable = {
             modeType = "RescuMode"
           } 
 
-          var style = ""
+          var testStyle = ""
           if (runningFound){
             let testStatus = this.running[runningIndex].Hosts[nHost].Tests[nTest].Status;
             if (testStatus == 0 ) {
-              style = 'style="background: #fff"'
+              if (antTestStatus == 1 && this.currentStatus == 'running'){
+                //testStyle = 'style="background: #fff"'
+                testStyle = 'style="background: #EBF5FB"';
+                imageLoading = '<img src="static/loading.gif" width=16/>';
+              } 
+              else {
+                testStyle = 'style="background: #fff"'
+                imageLoading = ''
+              }
             }
             else if (testStatus == 1 ) {
-              style = 'style="background: #b1e19d"'
+              testStyle = 'style="background: #EAFAF1"'
+              imageLoading = ''
             }  
             else if (testStatus == 2 ) {
-              style = 'style="background: #ff9d9d"'
+              testStyle = 'style="background: #F9EBEA"'
+              imageLoading = ''
             }  
-          }
-                    
+            antTestStatus = testStatus
+          }      
+
           document.getElementById('container-infra-zone-hosts-' + infrastructure.Hosts[Host].Name).innerHTML += `
             <div class="col col-md" id="container-infra-zone-hosts-` + infrastructure.Hosts[Host].Name + `-` + nTest + `">
-              <div class="card" id="card-test" ` + style + `>
-                <div class="card-header">` + nTest + ` - ` + infrastructure.Hosts[Host].Tests[Test].Name + `</div>
+              <div class="card" data-bs-toggle="modal" data-bs-target="#modal-show-test-results" id="card-test" ` + testStyle + ` onclick="showTestModal('`+infrastructure.Name+`',` + nHost + `,` + nTest + `)">
+                <div class="card-header">` + imageLoading + ` ` + nTest + ` - ` + infrastructure.Hosts[Host].Tests[Test].Name + ` </div>
                 <div class="card-body">
                   <p class="card-text"> <b>Type: </b>` + testType + `</p>
                   <p class="card-text"> <b>Mode: </b>` + modeType + `</p>

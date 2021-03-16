@@ -40,6 +40,9 @@ var upCmd = &cobra.Command{
 		model.LoadRunningInfrastructure(args[0])
 		model.InitInfrastructure(args[0])
 
+		model.Infrastructure.Status = "upping"
+		model.SaveRunningIfrastructure()
+
 		if init {
 			log.Println("+ RESET: --init/-i enabled, resetting all tests")
 			model.InitTesting(1)
@@ -70,6 +73,9 @@ var upCmd = &cobra.Command{
 			log.Println(err.Error())
 		}
 		httpServerExitDone.Wait()
+
+		model.Infrastructure.Status = "up"
+		model.SaveRunningIfrastructure()
 	},
 }
 

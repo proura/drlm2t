@@ -35,7 +35,7 @@ hosts:
   # Add client 1 - Debian 9 client
   - name: addCli1
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'deb9cli', '192.168.181.53/24']
     dependencies:
     - host: cli1
@@ -44,7 +44,7 @@ hosts:
   # Add client 2 - Debian 10 client
   - name: addCli2
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'deb10cli', '192.168.181.54/24']
     dependencies:
     - host: cli2
@@ -53,7 +53,7 @@ hosts:
   # Add client 3 - CentOS 7 client
   - name: addCli3
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'cen7cli', '192.168.181.55/24']
     dependencies:
     - host: cli3
@@ -62,7 +62,7 @@ hosts:
   # Add client 4 - CentOS 8 client
   - name: addCli4
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'cen8cli', '192.168.181.56/24']
     dependencies:
     - host: cli4
@@ -71,7 +71,7 @@ hosts:
   # Add client 5 - Ubuntu 18 client
   - name: addCli5
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'ubu18cli', '192.168.181.57/24']
     dependencies:
     - host: cli5
@@ -80,7 +80,7 @@ hosts:
   # Add client 6 - Ubuntu 20 client
   - name: addCli6
     testtype: 1
-    filetorun: installClient.test
+    filetorun: installClientExpect.test
     args: [ 'ubu20cli', '192.168.181.58/24']
     dependencies:
     - host: cli6
@@ -257,3 +257,4 @@ hosts:
     dependencies:
     - host: srv1
       test: 10
+

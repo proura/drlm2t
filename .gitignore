@@ -6,6 +6,10 @@ cfg/drlm2t.key
 
 # Build of drlm2t
 drlm2t
+
+# Build of drlm2t-api
+drlm2t-api/drlm2t-api
+
 # Build of drlm2t-client
 drlm2t-client/drlm2t-client
 

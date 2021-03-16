@@ -26,6 +26,7 @@ type DRLMTestingConfig struct {
 	DefMask     string `mpastructure:"defmask"`
 	DefDNS      string `mpastructure:"defdns"`
 	DefTem      string `mpastructure:"deftmp"`
+	Status      string `mpastructure:"status"`
 
 	Kvms  []Kvm     `mpastructure:"kvms"`
 	Nets  []Network `mapstructure:"nets"`
@@ -184,7 +185,6 @@ func InitInfrastructure(cfgName string) {
 			net.DhcpStartIP = ip.String()
 			ip[3] = 200
 			net.DhcpEndIP = ip.String()
-			log.Println("Appen1 net =========> " + net.Name)
 			Infrastructure.Nets = append(Infrastructure.Nets, net)
 		}
 	}
@@ -199,8 +199,6 @@ func InitInfrastructure(cfgName string) {
 		if !foundMgmtNet {
 			var net Network
 			net.Name = "mgmt"
-			log.Println("Appen2 net =========> " + net.Name)
-
 			Infrastructure.Hosts[index].Nets = append(Infrastructure.Hosts[index].Nets, net)
 		}
 	}
@@ -209,8 +207,6 @@ func InitInfrastructure(cfgName string) {
 		if len(host.Nets) == 1 {
 			var net Network
 			net.Name = "default"
-			log.Println("Appen3 net =========> " + net.Name)
-
 			Infrastructure.Hosts[index].Nets = append(Infrastructure.Hosts[index].Nets, net)
 		}
 	}
@@ -235,8 +231,6 @@ func InitInfrastructure(cfgName string) {
 				var net Network
 				net.Name = nethost.Name
 				net.Kvm = host.Kvm
-				log.Println("Appen4 net =========> " + net.Name)
-
 				Infrastructure.Nets = append(Infrastructure.Nets, net)
 			}
 		}

@@ -29,6 +29,9 @@ var cleanCmd = &cobra.Command{
 
 		model.LoadRunningInfrastructure(args[0])
 		model.Infrastructure = model.RunningInfrastructure
+		model.Infrastructure.Status = "cleaning"
+		model.SaveRunningIfrastructure()
+
 		model.Infrastructure.Clean()
 	},
 }

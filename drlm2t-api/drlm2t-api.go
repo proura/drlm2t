@@ -24,7 +24,10 @@ var routes = []route{
 	// API functions ////////////////////////////////
 	newRoute("GET", "/api/infrastructures", middlewareUserToken(apiGetInfrastructures)),
 	newRoute("GET", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiGetInfrastructure)),
+	newRoute("GET", "/api/infrastructures/([a-zA-Z0-9._-]+)/hosts/([0-9])+/tests/([0-9-]+)/result", middlewareUserToken(apiGetTestResult)),
 	newRoute("POST", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiSetInfrastructure)),
+	newRoute("PUT", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiPutInfrastructure)),
+	newRoute("DELETE", "/api/infrastructures/([a-zA-Z0-9._-]+)", middlewareUserToken(apiDeleteInfrastructure)),
 	newRoute("GET", "/api/running", middlewareUserToken(apiGetRunning)),
 	newRoute("GET", "/api/templates", middlewareUserToken(apiGetTemplates)),
 	newRoute("POST", "/api/up/([a-zA-Z0-9._-]+)", middlewareUserToken(apiUpTest)),

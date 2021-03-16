@@ -24,6 +24,9 @@ var runCmd = &cobra.Command{
 		model.LoadRunningInfrastructure(args[0])
 		model.Infrastructure = model.RunningInfrastructure
 
+		model.Infrastructure.Status = "running"
+		model.SaveRunningIfrastructure()
+
 		// Arranquem el servidor per enviar i rebre les configs
 		httpServerExitDone := &sync.WaitGroup{}
 		httpServerExitDone.Add(1)
@@ -43,6 +46,9 @@ var runCmd = &cobra.Command{
 			log.Println(err.Error())
 		}
 		httpServerExitDone.Wait()
+
+		model.Infrastructure.Status = "done"
+		model.SaveRunningIfrastructure()
 	},
 }
 

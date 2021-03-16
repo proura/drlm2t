@@ -253,7 +253,6 @@ func (h *Host) generateXML() string {
 	slot = 3
 
 	for i, net := range h.Nets {
-		log.Println("============>" + net.Name)
 		xmlNet := libvirtxml.DomainInterface{
 			MAC: &libvirtxml.DomainInterfaceMAC{
 				Address: net.Mac},

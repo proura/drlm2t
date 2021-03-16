@@ -30,8 +30,14 @@ var downCmd = &cobra.Command{
 		model.LoadRunningInfrastructure(args[0])
 		model.Infrastructure = model.RunningInfrastructure
 
+		model.Infrastructure.Status = "downing"
+		model.SaveRunningIfrastructure()
+
 		model.Infrastructure.DeleteHosts()
 		model.Infrastructure.DeleteNetworks()
+
+		model.Infrastructure.Status = "down"
+		model.SaveRunningIfrastructure()
 	},
 }
 
