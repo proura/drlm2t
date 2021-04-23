@@ -239,9 +239,12 @@ func (h *Host) generateXML() string {
 		Devices: &libvirtxml.DomainDeviceList{
 			Disks:      []libvirtxml.DomainDisk{},
 			Interfaces: []libvirtxml.DomainInterface{},
+
 			Graphics: []libvirtxml.DomainGraphic{
 				{
-					Spice: &libvirtxml.DomainGraphicSpice{},
+					Spice: &libvirtxml.DomainGraphicSpice{
+						AutoPort: "yes",
+					},
 				}},
 			Videos: []libvirtxml.DomainVideo{
 				{

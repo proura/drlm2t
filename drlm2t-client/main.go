@@ -152,6 +152,7 @@ func generateConfig() string {
 
 		localInterfaces, _ := net.Interfaces()
 		for _, n := range cfg.NetConfig {
+			n.Interface = "null"
 			for _, nl := range localInterfaces {
 				if n.Mac == nl.HardwareAddr.String() {
 					n.Interface = nl.Name

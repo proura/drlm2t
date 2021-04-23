@@ -7,9 +7,8 @@
 #
 # Expected output: 
 
-apt-get update 
-apt-get upgrade -y
-apt-get install -y openssh-client openssl gawk nfs-kernel-server rpcbind isc-dhcp-server tftpd-hpa qemu-utils sqlite3 lsb-release bash-completion git build-essential debhelper golang
+apt update && apt upgrade -y
+apt -y install git build-essential debhelper golang bash-completion
 git clone {{var0}}
 cd drlm
 git checkout {{var1}}
@@ -21,16 +20,4 @@ export GOPATH="/root/go"
 
 make deb
 cd ..
-dpkg -i {{var2}}
-
-echo "nbd" > /etc/modules-load.d/nbd.conf
-echo "options nbd max_part=8 nbds_max=1024" > /etc/modprobe.d/nbd.conf
-modprobe nbd
-
-sed -i '/TFTP_DIRECTORY="\/srv\/tftp"/c\TFTP_DIRECTORY="\/var\/lib\/drlm\/store"' /etc/default/tftpd-hpa
-
-DHCP_NET="$(ip -o link show | awk -F': ' '{print $2}' | awk '!/lo/')"
-sed -i "/INTERFACESv4=\"\"/c\INTERFACESv4=\"$(echo $DHCP_NET)\"" /etc/default/isc-dhcp-server
-
-systemctl restart tftpd-hpa.service
-systemctl restart rpcbind.service
+apt install -y ./{{var2}}

@@ -1,0 +1,216 @@
+description: >-
+  Fast development branch test of https://github.com/proura/drlm (only CentOS 8),
+  installa drlm 2.4.0 de la branca develop,
+  crea un client CentOS 8,
+  fa un backup PXE,
+  crea una configuració de bakcup RSYNC del directory /home/* del client,
+  fa backup DataOnly,
+  esborra dades,
+  i recupera client
+
+nets:
+- name: net1
+  ip: 192.168.181.1
+
+hosts:
+#################
+## DRLM SERVER ##
+#################
+- name: srv1
+  template: cen8
+  nets:
+  - name: net1
+    ip: 192.168.181.2
+  tests:
+
+  # host: srv1 - test: 1
+  # disable firewall and selinux
+  - name: disableSecurity
+    testtype: 1
+    filetorun: disableSecurity.test
+
+  # host: srv1 - test: 2
+  # Update DRLM server making apt update & apt upgrade
+  - name: update
+    testtype: 1
+    filetorun: update.test
+
+  # host: srv1 - test: 3
+  # install DRLM feature/incremental_backups of proura GitHub repository
+  - name: installDRLM240
+    testtype: 1
+    filetorun: installCustomDRLM240.test
+    args: [ 'https://github.com/proura/drlm', 'feature/jump2rsync', 'drlm-2.4.0-1git.el8.noarch.rpm' ]
+
+  # host: srv1 - test: 4
+  # install DRLM feature/incremental_backups of proura GitHub repository
+  - name: prettyOFF
+    testtype: 1
+    commandtorun: "echo 'DEF_PRETTY=false' >> /etc/drlm/local.conf"
+
+  # host: srv1 - test: 5
+  # Add backup networt to drlm networks in order to do PXE recovers
+  - name: addNetwork
+    testtype: 1
+    commandtorun: "drlm -vD addnetwork -n BuLan -s 192.168.181.2  -m 255.255.255.0 -g 192.168.181.1"
+
+  # host: srv1 - test: 6
+  # Install Expect to automate responses of DRLM install client
+  - name: installExpect
+    testtype: 1
+    commandtorun: "yum -y install expect"
+    landmark: true
+
+  # host: srv1 - test: 7
+  # Add client 1 -CentOS 8 client
+  - name: addCli1
+    testtype: 1
+    filetorun: installClientExpect.test
+    args: [ 'cen8cli', '192.168.181.53/24']
+    dependencies:
+    - host: cli1
+      test: 2
+
+  # host: srv1 - test: 8
+  # get output of drlm listclient
+  - name: listClients
+    testtype: 1
+    commandtorun: "drlm listclient"
+
+  # host: srv1 - test: 9
+  # Make a default backup (Rescue PXE and all Data) of client1 
+  - name: runDefaultBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c cen8cli"  
+    dependencies: # Client with Automatic rescue prepared
+    - host: cli1
+      test: 3
+
+  # host: srv1 - test: 10
+  # get output of drlm listbackup
+  - name: listBackups
+    testtype: 1
+    commandtorun: "drlm listbackup" 
+
+  # host: srv1 - test: 11
+  # create client home data only incremental backup
+  - name: createCli1Config
+    testtype: 1
+    commandtorun: "echo -e \"DRLM_BKP_TYPE=DATA\nDRLM_INCREMENTAL=yes\nBACKUP_PROG_INCLUDE=( '/home' )\" > /etc/drlm/clients/cen8cli.cfg.d/homeBackup.cfg"
+  
+  # host: srv1 - test: 12
+  # 1 Make a incremental data backup of client1
+  - name: 1runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c cen8cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 4
+
+  # host: srv1 - test: 13
+  # 2 Make a incrementl data backup of client1
+  - name: 2runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c cen8cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 5
+
+  # host: srv1 - test: 14 
+  # 3 Make a incremental data backup of client1
+  - name: 3runDataBackupCli1
+    testtype: 1
+    commandtorun: "drlm runbackup -c cen8cli -C homeBackup"
+    dependencies: 
+    - host: cli1
+      test: 6
+
+  # host: srv1 - test: 15   
+  # get output of drlm listbackup
+  - name: listBackups
+    testtype: 1
+    commandtorun: "drlm listbackup" 
+
+
+#################
+## DRLM CLIENT ##
+#################
+- name: cli1
+  template: cen8
+  nets:
+  - name: net1
+    ip: 192.168.181.53
+  tests:
+
+  # host: cli1 - test: 1
+  # disable firewall and selinux
+  - name: disableSecurity
+    testtype: 1
+    filetorun: disableSecurity.test
+
+  # host: cli1 - test: 2
+  # Update client making apt update & apt upgrade
+  - name: update
+    filetorun: update.test
+    expect: "OK"
+
+  # host: cli1 - test: 3
+  # Update client making apt update & apt upgrade
+  - name: prepareRescue
+    filetorun: prepRescueCLI.test
+    testtype: 1
+    dependencies: # Client created in drlm server
+    - host: srv1
+      test: 7 
+
+  # host: cli1 - test: 4
+  - name: touchHomeFile1
+    commandtorun: "echo $(date) - first bakcup > /home/drlm/file1.txt"
+    testtype: 1
+    dependencies: # New DataOnly Config Created
+    - host: srv1
+      test: 11
+
+  # host: cli1 - test: 5
+  - name: touchHomeFile2
+    commandtorun: "echo $(date) - second bakcup >> /home/drlm/file1.txt; echo $(date) - second bakcup > /home/drlm/file2.txt"
+    testtype: 1
+    dependencies: # Backup1 done
+    - host: srv1
+      test: 12 
+
+  # host: cli1 - test: 6
+  - name: touchHomeFile3
+    commandtorun: "echo $(date) - third bakcup >> /home/drlm/file1.txt; echo $(date) - second third >> /home/drlm/file2.txt; echo $(date) - second third >> /home/drlm/file3.txt"
+    testtype: 1
+    dependencies: # Backup2 done
+    - host: srv1
+      test: 13
+
+  # host: cli1 - test: 7
+  - name: deleteThings
+    commandtorun: "rm -rf /home/*; ls -l /home; rm -rf /etc/rear/*; ls -l /etc/rear"
+    testtype: 1
+    dependencies: # Backup3 done
+    - host: srv1
+      test: 14
+
+  # host: cli1 - test: 8
+  # En modo recover, primer recover del sistema per recuperar /etc/rear
+  - name: recoverBase
+    commandtorun: "rear recover"
+    testtype: 1
+    mode: 1
+
+  # host: cli1 - test: 9
+  # En modo recover, despres /home/drlm i /home/drlm2t
+  - name: recoverData
+    commandtorun: "rear -C homeBackup restoreonly"
+    testtype: 1
+    mode: 1
+
+  # host: cli1 - test: 10
+  - name: listRecoverThings
+    commandtorun: "ls -l /etc/rear; ls -l /home"
+    testtype: 1
+

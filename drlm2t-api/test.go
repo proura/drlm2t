@@ -97,9 +97,10 @@ func apiPutInfrastructure(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyString := "description: \"Template infrastructure\"" + "\n" +
+		"DefIP: 192.168.20.0" + "\n" +
 		"nets:" + "\n" +
 		"- name: net1" + "\n" +
-		"  ip: 192.168.181.1" + "\n" +
+		"  ip: 192.168.21.1" + "\n" +
 		"" + "\n" +
 		"hosts:" + "\n" +
 		"#################" + "\n" +
@@ -109,7 +110,7 @@ func apiPutInfrastructure(w http.ResponseWriter, r *http.Request) {
 		"  template: deb10" + "\n" +
 		"  nets:" + "\n" +
 		"  - name: net1" + "\n" +
-		"    ip: 192.168.181.2" + "\n" +
+		"    ip: 192.168.21.2" + "\n" +
 		"  tests:" + "\n" +
 		"" + "\n" +
 		"  # host: srv1 - test: 1" + "\n" +
@@ -126,7 +127,7 @@ func apiPutInfrastructure(w http.ResponseWriter, r *http.Request) {
 		"  template: deb10" + "\n" +
 		"  nets:" + "\n" +
 		"  - name: net1" + "\n" +
-		"    ip: 192.168.181.53" + "\n" +
+		"    ip: 192.168.21.10" + "\n" +
 		"  tests:" + "\n" +
 		"" + "\n" +
 		"  # host: deb10 - test: 1" + "\n" +
@@ -283,7 +284,7 @@ func apiGetTestResult(w http.ResponseWriter, r *http.Request) {
 
 	infrastructure := getRunningInfrastructure(configDRLM2T.TestPath + "/" + receivedInfrastructure)
 
-	if len(infrastructure.Hosts) > 1 {
+	if len(infrastructure.Hosts) > 0 {
 		testFilePath := ""
 
 		if _, err := os.Stat(configDRLM2T.TestPath + "/" + receivedInfrastructure + "/tests/" + infrastructure.Hosts[receivedHostIndex].Name + "/done/" + getField(r, 2) + "-OK-" + infrastructure.Hosts[receivedHostIndex].Tests[receivedTestIndex].Name + ".test"); err == nil {

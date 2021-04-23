@@ -17,6 +17,10 @@ drlm2t-client/drlm2t-client
 tests/ldap
 tests/minimal
 tests/demo
+tests/BUILD_ALL
+tests/BUILD_CENTOS
+tests/BUILD_DEBIAN
+tests/BUILD_UBUNTU
 
 # running test yaml files
 running.yaml

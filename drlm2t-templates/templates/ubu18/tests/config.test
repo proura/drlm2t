@@ -23,6 +23,8 @@ echo "network:" >> /etc/netplan/00-installer-config.yaml
 echo "  version: 2" >> /etc/netplan/00-installer-config.yaml
 echo "  ethernets:" >> /etc/netplan/00-installer-config.yaml
 
+i=0
+
 while read -r line ; do
     NAME=$(echo $line | awk '{print $2}')
     IFACE=$(echo $line | awk '{print $3}')
@@ -36,9 +38,11 @@ while read -r line ; do
    echo "    $IFACE:" >> /etc/netplan/00-installer-config.yaml
    echo "      dhcp4: false" >> /etc/netplan/00-installer-config.yaml
    echo "      addresses: [$IP/$MASKC]" >> /etc/netplan/00-installer-config.yaml
-   echo "      gateway4: $GATEWAY" >> /etc/netplan/00-installer-config.yaml
+   if [ "$i" == "0" ]; then echo "      gateway4: $GATEWAY" >> /etc/netplan/00-installer-config.yaml; fi
    echo "      nameservers:" >> /etc/netplan/00-installer-config.yaml
    echo "        addresses: [$DNS]" >> /etc/netplan/00-installer-config.yaml
+   
+  ((i++))
 
 done < <(grep NETWORK drlm2t.cfg)
 

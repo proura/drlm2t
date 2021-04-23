@@ -83,7 +83,7 @@ func InitInfrastructure(cfgName string) {
 
 	// Set Default Global starting IP
 	if Infrastructure.DefIP == "" {
-		Infrastructure.DefIP = "192.168.75.0"
+		Infrastructure.DefIP = "192.168.20.0"
 	}
 	// Set Defautl Global mask
 	if Infrastructure.DefMask == "" {

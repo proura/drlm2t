@@ -211,7 +211,7 @@ var InfrastructuresTable = {
           this.currentStatus = 'upping'
           document.getElementById('upinfrabutton').disabled = true;
           document.getElementById('runinfrabutton').disabled = true;
-          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = false;
           document.getElementById('cleaninfrabutton').disabled = true;
         }
         else if (this.running[runningIndex].Status == "up") {
@@ -225,7 +225,7 @@ var InfrastructuresTable = {
           this.currentStatus = 'running'
           document.getElementById('upinfrabutton').disabled = true;
           document.getElementById('runinfrabutton').disabled = true;
-          document.getElementById('downinfrabutton').disabled = true;
+          document.getElementById('downinfrabutton').disabled = false;
           document.getElementById('cleaninfrabutton').disabled = true;
         } 
         else if (this.running[runningIndex].Status == "done") {
@@ -388,7 +388,7 @@ var InfrastructuresTable = {
               testStyle = 'style="background: #EAFAF1"'
               imageLoading = ''
             }  
-            else if (testStatus == 2 ) {
+            else if (testStatus == -1 ) {
               testStyle = 'style="background: #F9EBEA"'
               imageLoading = ''
             }  
